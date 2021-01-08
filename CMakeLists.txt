@@ -55,7 +55,7 @@ find_package(VISA REQUIRED)
 ## Targets/Sources
 ##
 
-add_subdirectory("src/hello-world")
+add_subdirectory("src/tests/find-resource")
 
 # Generate target list
 get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)

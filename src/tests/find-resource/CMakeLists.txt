@@ -2,10 +2,10 @@
 ## Target
 ##
 
-set(TARGET "hello")
+set(TARGET "find-resource")
 
 ##
-## Source files
+## Setup source files and target
 ##
 
 file(GLOB_RECURSE SRC_FILES
@@ -14,24 +14,6 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_executable(${TARGET} ${SRC_FILES})
-
-# Tell the Project about this target
-set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
-
-##
-## Compiler flags
-##
-
-target_compile_features(${TARGET} PRIVATE cxx_std_17)
-
-##
-## Version
-##
-
-configure_file (
-  "${PROJECT_SOURCE_DIR}/cmake/version.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/version.h"
-  )
 
 ##
 ## Includes
@@ -43,14 +25,37 @@ target_include_directories(${TARGET}
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   PRIVATE
+    VISA
     ${CMAKE_CURRENT_BINARY_DIR}/
     ${CMAKE_CURRENT_LIST_DIR}/src
   )
 
-target_link_libraries(hello
+target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
+    VISA
   )
 
+##
+## Compiler flags
+##
+
+target_compile_features(${TARGET} PRIVATE cxx_std_17)
+
+##
+## Setup requirements
+##
+
+# Tell the Project about this target
+set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
+
+##
+## Version
+##
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/cmake/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  )
 
