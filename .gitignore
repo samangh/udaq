@@ -79,8 +79,12 @@ compile_commands.json
 
 *_qmlcache.qrc
 
-######################
-# CMake build folder #
-######################
+#########
+# Other #
+#########
 
+# CMake Build
 /build/
+
+# Visual Studion
+/.vs/
