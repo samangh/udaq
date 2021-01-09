@@ -58,6 +58,6 @@ endforeach()
 ## Misc
 ##
 
-# Export compile database for IDEs, needed for QtCreatorx
+# Export compile database for IDEs, needed for QtCreator
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
