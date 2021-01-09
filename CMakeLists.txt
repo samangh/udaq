@@ -31,6 +31,7 @@ find_package(VISA REQUIRED)
 ##
 
 add_subdirectory("src/tests/find-resource")
+add_subdirectory("src/tests/idn")
 
 # Generate target list
 get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)
