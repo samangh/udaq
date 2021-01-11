@@ -40,7 +40,7 @@ find_package(VISA REQUIRED)
 ##
 ## Targets/Sources
 ##
-
+add_subdirectory(src/tools/scpi-simulator)
 add_subdirectory("src/tests/find-resource")
 add_subdirectory("src/tests/idn")
 
