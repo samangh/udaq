@@ -26,6 +26,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # Configure Boost in Windows
 if(MSVC)
+  # Target Windows 7 and higher
+  add_compile_definitions(_WIN32_WINNT=_WIN32_WINNT_WIN7)
+
   # Use static linking in Windows
   set(Boost_USE_STATIC_LIBS ON)
 
