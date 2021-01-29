@@ -45,6 +45,7 @@ find_package(VISA REQUIRED)
 ##
 
 add_subdirectory(src/udaq)
+add_subdirectory(src/gui)
 
 add_subdirectory(src/tools/scpi-simulator)
 add_subdirectory("src/tests/find-resource")
