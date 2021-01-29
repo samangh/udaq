@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13.4)
 project(udaq
   VERSION "0.0.1"
   DESCRIPTION "Cross-pltform Data Acquisition Sequencer"
-  LANGUAGES CXX)
+  LANGUAGES C CXX)
 
 set(NAMESPACE udaq)
 
@@ -43,6 +43,8 @@ find_package(VISA REQUIRED)
 ##
 ## Targets/Sources
 ##
+
+add_subdirectory(imgui)
 
 add_subdirectory(src/udaq)
 add_subdirectory(src/gui)

@@ -1,8 +1,6 @@
 set(TARGET gui)
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
-find_package(SDL2 REQUIRED)
-
 ##
 ## Source files
 ##
@@ -34,9 +32,7 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
-    SDL2::SDL2
-    SDL2::SDL2main
-    "-framework CoreFoundation"
+    imgui
   )
 
 ##
