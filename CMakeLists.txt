@@ -46,12 +46,12 @@ find_package(VISA REQUIRED)
 
 add_subdirectory(imgui)
 
-add_subdirectory(src/udaq)
-add_subdirectory(src/gui)
+add_subdirectory(udaq)
+add_subdirectory(gui)
 
-add_subdirectory(src/tools/scpi-simulator)
-add_subdirectory("src/tests/find-resource")
-add_subdirectory("src/tests/idn")
+add_subdirectory(tools/scpi-simulator)
+add_subdirectory(tests/find-resource)
+add_subdirectory(tests/idn)
 
 # Generate target list
 get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)
