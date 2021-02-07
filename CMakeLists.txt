@@ -15,6 +15,14 @@ set(NAMESPACE udaq)
 option (BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 ##
+## Misc
+##
+
+# Export compile database for IDEs, needed for QtCreator
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+##
 ## CMake module paths
 ##
 
@@ -74,11 +82,3 @@ endforeach()
 foreach(t ${TARGETS})
   target_compile_features(${t} PRIVATE cxx_std_17)
 endforeach()
-
-##
-## Misc
-##
-
-# Export compile database for IDEs, needed for QtCreator
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
