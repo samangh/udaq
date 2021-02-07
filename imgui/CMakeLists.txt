@@ -16,6 +16,8 @@ file(GLOB SRC_FILES
   ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
   ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp)
 
+list(REMOVE_ITEM SRC_FILES ${IMGUI_DIR}/imgui_demo.cpp)
+
 add_library(${TARGET} STATIC ${SRC_FILES})
 
 ##
