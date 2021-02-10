@@ -38,7 +38,7 @@ target_link_libraries(${TARGET}
   PUBLIC
     SDL2::SDL2
     SDL2::SDL2main
-    "-framework CoreFoundation"
+    $<$<BOOL:${APPLE}>:"-framework CoreFoundation">
   PRIVATE)
 
 ##
