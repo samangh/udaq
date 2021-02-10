@@ -39,7 +39,8 @@ target_link_libraries(${TARGET}
     SDL2::SDL2
     SDL2::SDL2main
     $<$<BOOL:${APPLE}>:"-framework CoreFoundation">
-  PRIVATE)
+  PRIVATE
+    $<$<BOOL:${WIN32}>:opengl32>)
 
 ##
 ## Compiler flags
