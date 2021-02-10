@@ -36,7 +36,7 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-    SDL2::SDL2
+    $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
     SDL2::SDL2main
     $<$<BOOL:${APPLE}>:"-framework CoreFoundation">
   PRIVATE
