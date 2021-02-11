@@ -5,10 +5,9 @@ if(WIN32)
     NAMES visa.h
     HINTS ${VISA_DIR}/include ${IVI_DIR}/include)
 
-  find_path(VISA_LIBRARIES
-    NAMES visa32
-    HINTS
-      ${VISA_DIR}/lib)
+  find_library(VISA_LIBRARIES
+    NAMES visa64 visa32
+    HINTS ${VISA_DIR}/lib ${VISA_DIR}/lib/msc ${VISA_DIR}/Lib_x64/msc ${IVI_DIR}/lib/msc ${IVI_DIR}/Lib_x64/msc)
 endif()
 
 if(APPLE)
