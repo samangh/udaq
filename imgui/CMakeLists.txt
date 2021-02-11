@@ -4,7 +4,9 @@ set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 set(IMGUI_DIR ${PROJECT_SOURCE_DIR}/external/imgui)
 
 find_package(SDL2 REQUIRED)
-
+if(WIN32)
+  find_package(OpenGL REQUIRED)
+endif(WIN32)
 
 ##
 ## Source files
@@ -39,7 +41,7 @@ target_link_libraries(${TARGET}
     $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
     SDL2::SDL2main
   PRIVATE
-    $<$<BOOL:${WIN32}>:opengl32>)
+    $<$<BOOL:${WIN32}>:OpenGL::GL>)
 
   # Need to link against CoreFoundation in macOS
   if(APPLE)
