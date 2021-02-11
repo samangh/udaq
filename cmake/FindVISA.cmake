@@ -20,12 +20,12 @@ endif()
 if (NOT VISA_INCLUDE_DIRS)
   FIND_PATH(VISA_INCLUDE_DIRS
     NAMES visa.h
-    HINTS ${VISA_DIR}/include "/usr/include/ni-visa")
+    HINTS ${VISA_DIR}/include "/usr/include/ni-visa" "/usr/include/rsvisa")
 endif()
 
 if (NOT VISA_LIBRARIES)
   FIND_LIBRARY(VISA_LIBRARIES
-    NAMES visa64 visa32
+    NAMES visa64 visa32 rsvisa
     HINTS
       ${VISA_DIR}/lib
 
