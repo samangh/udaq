@@ -1,3 +1,7 @@
+##
+## Windows
+##
+
 if(WIN32)
   set(IVI_DIR "C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT")
 
@@ -10,8 +14,13 @@ if(WIN32)
     HINTS ${VISA_DIR}/lib ${VISA_DIR}/lib/msc ${VISA_DIR}/Lib_x64/msc ${IVI_DIR}/lib/msc ${IVI_DIR}/Lib_x64/msc)
 endif()
 
+##
+## macOS
+##
+
 if(APPLE)
   set(VISA_FRAMEWORK "/Library/Frameworks/VISA.framework")
+  set(RSVISA_FRAMEWORK "/Library/Frameworks/RsVisa.framework")
 
   # The CMake searching for Frameworks is broken, so don't use. Instead
   # give direct paths to the library and header forlder.
@@ -19,16 +28,20 @@ if(APPLE)
   # See https://cmake.org/pipermail/cmake/2014-April/057397.html
   set(CMAKE_FIND_FRAMEWORK NEVER)
 
-  # set(VISA_LIBRARIES "${VISA_DIR}/VISA")
+  # set(VISA_LIBRARIES "${VISA_DIR}/RsVisa")
 
   find_path(VISA_INCLUDE_DIRS
     NAMES visa.h
-    HINTS ${VISA_DIR}/include ${VISA_FRAMEWORK}/Headers)
+    HINTS ${VISA_DIR}/include ${VISA_FRAMEWORK}/Headers ${RSVISA_FRAMEWORK}/Headers)
 
   find_library(VISA_LIBRARIES
-    NAMES VISA
-    HINTS ${VISA_DIR}/lib ${VISA_FRAMEWORK})
+    NAMES rsvisa visa
+    HINTS ${VISA_DIR}/lib ${VISA_FRAMEWORK}/Versions/Current/VISA ${RSVISA_FRAMEWORK}/Versions/Current/RsVisa)
 endif()
+
+##
+## Unix/Linux
+##
 
 if (UNIX AND NOT APPLE)
   find_path(VISA_INCLUDE_DIRS
