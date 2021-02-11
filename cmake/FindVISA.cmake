@@ -22,13 +22,11 @@ if(APPLE)
   set(VISA_FRAMEWORK "/Library/Frameworks/VISA.framework")
   set(RSVISA_FRAMEWORK "/Library/Frameworks/RsVisa.framework")
 
-  # The CMake searching for Frameworks is broken, so don't use. Instead
-  # give direct paths to the library and header forlder.
+  # The CMake searching for Frameworks is broken, so use it as a last
+  # resort. Instead give direct paths to the library and header folders.
   #
   # See https://cmake.org/pipermail/cmake/2014-April/057397.html
-  set(CMAKE_FIND_FRAMEWORK NEVER)
-
-  # set(VISA_LIBRARIES "${VISA_DIR}/RsVisa")
+  set(CMAKE_FIND_FRAMEWORK LAST)
 
   find_path(VISA_INCLUDE_DIRS
     NAMES visa.h
