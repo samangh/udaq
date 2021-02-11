@@ -1,11 +1,18 @@
-if(WIN32 AND NOT VISA_DIR)
-    set(VISA_DIR "C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT")
+if(WIN32)
+  set(IVI_DIR "C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT")
+
+  find_path(VISA_INCLUDE_DIRS
+    NAMES visa.h
+    HINTS ${VISA_DIR}/include ${IVI_DIR}/include)
+
+  find_path(VISA_LIBRARIES
+    NAMES visa32
+    HINTS
+      ${VISA_DIR}/lib)
 endif()
 
 if(APPLE)
-  if (NOT VISA_DIR)
-    set(VISA_DIR "/Library/Frameworks/VISA.framework")
-  endif()
+  set(VISA_FRAMEWORK "/Library/Frameworks/VISA.framework")
 
   # The CMake searching for Frameworks is broken, so don't use. Instead
   # give direct paths to the library and header forlder.
@@ -13,27 +20,29 @@ if(APPLE)
   # See https://cmake.org/pipermail/cmake/2014-April/057397.html
   set(CMAKE_FIND_FRAMEWORK NEVER)
 
-  set(VISA_LIBRARIES "${VISA_DIR}/VISA")
-  set(VISA_INCLUDE_DIRS "${VISA_DIR}/Headers")
+  # set(VISA_LIBRARIES "${VISA_DIR}/VISA")
+
+  find_path(VISA_INCLUDE_DIRS
+    NAMES visa.h
+    HINTS ${VISA_DIR}/include ${VISA_FRAMEWORK}/Headers)
+
+  find_library(VISA_LIBRARIES
+    NAMES VISA
+    HINTS ${VISA_DIR}/lib ${VISA_FRAMEWORK})
 endif()
 
-if (NOT VISA_INCLUDE_DIRS)
-  FIND_PATH(VISA_INCLUDE_DIRS
+if (UNIX AND NOT APPLE)
+  find_path(VISA_INCLUDE_DIRS
     NAMES visa.h
     HINTS ${VISA_DIR}/include "/usr/include/ni-visa" "/usr/include/rsvisa")
-endif()
 
-if (NOT VISA_LIBRARIES)
-  FIND_LIBRARY(VISA_LIBRARIES
+  find_path(VISA_LIBRARIES
     NAMES visa64 visa32 rsvisa
     HINTS
       ${VISA_DIR}/lib
 
       # On openSUSE, CMake seems to search /usr/lib64 but not /usr/lib/x86_64-linux-gnu, so add those
-      "/usr/lib/i386-linux-gnu" "/usr/lib/x86_64-linux-gnu"
-
-      # Windows hints
-      ${VISA_DIR}/lib/msc ${VISA_DIR}/Lib_x64/msc)
+      "/usr/lib/i386-linux-gnu" "/usr/lib/x86_64-linux-gnu")
 endif()
 
 INCLUDE(FindPackageHandleStandardArgs)
