@@ -46,8 +46,8 @@ if (UNIX AND NOT APPLE)
     NAMES visa.h
     HINTS ${VISA_DIR}/include "/usr/include/ni-visa" "/usr/include/rsvisa")
 
-  find_path(VISA_LIBRARIES
-    NAMES visa64 visa32 rsvisa
+  find_library(VISA_LIBRARIES
+    NAMES visa rsvisa
     HINTS
       ${VISA_DIR}/lib
 
