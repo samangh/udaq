@@ -37,16 +37,11 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
     $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
+    "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
     SDL2::SDL2main
   PRIVATE
     OpenGL::GL
     $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:${CMAKE_DL_LIBS}>)
-
-  # Need to link against CoreFoundation in macOS
-  if(APPLE)
-    target_link_libraries(${TARGET}
-      PUBLIC "-framework CoreFoundation")
-  endif()
 
 ##
 ## Compiler flags
