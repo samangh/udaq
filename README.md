@@ -43,5 +43,5 @@ This software has been tested with:
 
 * Windows 10 (using all four major VISA suppliers above);
 * macOS (using National Instruments and R&S VISA);
-* Linux CentOS 8 (using National Instruments and R&S VISA);
+* Linux CentOS 8 (using National Instruments, R&S and Keysight VISA);
 * Linux openSuSE 8 (using National Instruments VISA).
