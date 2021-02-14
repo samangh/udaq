@@ -33,12 +33,20 @@ target_include_directories(${TARGET}
     $<BUILD_INTERFACE:${IMGUI_DIR}/examples/libs/gl3w>
   PRIVATE)
 
+# Old versions of SDL2 don't export namekspace targets
+if(TARGET SDL2::SDL2)
+  target_link_libraries(${TARGET} PUBLIC
+    $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
+    SDL2::SDL2main)
+else()
+  target_include_directories(${TARGET} PUBLIC ${SDL2_INCLUDE_DIRS})
+  target_link_libraries(${TARGET} PUBLIC ${SDL2_LIBRARIES})
+endif()
+
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-    $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
     "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
-    SDL2::SDL2main
   PRIVATE
     OpenGL::GL
     $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:${CMAKE_DL_LIBS}>)
