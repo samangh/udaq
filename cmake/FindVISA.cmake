@@ -51,7 +51,8 @@ if (UNIX AND NOT APPLE)
     HINTS
       ${VISA_DIR}/lib
 
-      # On openSUSE, CMake seems to search /usr/lib64 but not /usr/lib/x86_64-linux-gnu, so add those
+      # On openSUSE, NI mistakenly puts it's libraries at
+      # /usr/lib/x86_64-linux-gnu instead of /usr/lib64, so add those
       "/usr/lib/i386-linux-gnu" "/usr/lib/x86_64-linux-gnu")
 endif()
 
