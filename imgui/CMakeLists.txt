@@ -39,7 +39,8 @@ target_link_libraries(${TARGET}
     $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
     SDL2::SDL2main
   PRIVATE
-    OpenGL::GL)
+    OpenGL::GL
+    $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:${CMAKE_DL_LIBS}>)
 
   # Need to link against CoreFoundation in macOS
   if(APPLE)
