@@ -46,9 +46,9 @@ endif()
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-    "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
   PRIVATE
     OpenGL::GL
+    "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
     $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>:${CMAKE_DL_LIBS}>)
 
 ##
