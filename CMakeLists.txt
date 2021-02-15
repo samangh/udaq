@@ -32,21 +32,23 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ## Packages
 ##
 
+find_package(VISA REQUIRED)
+
+# Use boost statially if making a static library
+if(NOT BUILD_SHARED_LIBS)
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
+
 # Configure Boost in Windows
 if(MSVC)
   # Target Windows 7 and higher
   add_compile_definitions(_WIN32_WINNT=_WIN32_WINNT_WIN7)
-
-  # Use static linking in Windows
-  set(Boost_USE_STATIC_LIBS ON)
 
   # Boost tries to use auto linking (i.e. #pragma lib in headers) to tell
   # the compiler what to link to. This does not work properly on
   # Widnows/MSVC.
   add_compile_definitions(BOOST_ALL_NO_LIB)
 endif()
-
-find_package(VISA REQUIRED)
 
 ##
 ## Targets/Sources
