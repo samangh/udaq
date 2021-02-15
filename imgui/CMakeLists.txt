@@ -36,7 +36,7 @@ target_include_directories(${TARGET}
 # Old versions of SDL2 don't export namekspace targets
 if(TARGET SDL2::SDL2)
   target_link_libraries(${TARGET} PUBLIC
-    $<IF:$<BOOL:${WIN32}>,SDL2::SDL2-static,SDL2::SDL2>
+    $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,SDL2::SDL2,SDL2::SDL2-static>
     SDL2::SDL2main)
 else()
   target_include_directories(${TARGET} PUBLIC ${SDL2_INCLUDE_DIRS})
