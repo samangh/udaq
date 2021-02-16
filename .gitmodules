@@ -2,3 +2,7 @@
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = master
+[submodule "external/wise_enum"]
+	path = external/wise_enum
+	url = https://github.com/samangh/wise_enum.git
+	branch = master
