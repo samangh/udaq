@@ -33,10 +33,10 @@ target_include_directories(${TARGET}
     $<BUILD_INTERFACE:${IMGUI_DIR}/examples/libs/gl3w>
   PRIVATE)
 
-# Old versions of SDL2 don't export namekspace targets
+# Old versions of SDL2 don't export namespace targets
 if(TARGET SDL2::SDL2)
   target_link_libraries(${TARGET} PUBLIC
-    $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,SDL2::SDL2,SDL2::SDL2-static>
+    SDL2::SDL2
     SDL2::SDL2main)
 else()
   target_include_directories(${TARGET} PUBLIC ${SDL2_INCLUDE_DIRS})
