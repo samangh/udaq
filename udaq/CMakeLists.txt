@@ -22,15 +22,13 @@ target_include_directories(${TARGET}
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   PRIVATE
-    VISA
-    ${CMAKE_CURRENT_BINARY_DIR}/
-    ${CMAKE_CURRENT_LIST_DIR}/src
   )
 
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
+    wise_enum
     VISA
   )
 
