@@ -35,7 +35,7 @@ int main(void)
         exit (EXIT_FAILURE);
     }
 
-    status = viOpen (defaultRM,  "TCPIP0::192.168.0.19::1060::SOCKET", VI_NULL, VI_NULL, &instr);
+    status = viOpen (defaultRM,  "TCPIP0::127.0.0.1::5020::SOCKET", VI_NULL, VI_NULL, &instr);
     if (status < VI_SUCCESS)
     {
         std::cout << "Cannot open a session to the device." << std::endl;
