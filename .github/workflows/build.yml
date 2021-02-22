@@ -1,0 +1,45 @@
+name: build
+
+on: [workflow_dispatch, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    name: ${{matrix.config.os}}-${{matrix.config.cc}}
+    runs-on: ${{ matrix.config.os }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        config:
+           - { os: ubuntu-latest, cc: gcc }
+           - { os: ubuntu-latest, cc: clang }
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+             sudo apt update
+             sudo apt install ${{ matrix.config.cc }} \
+                              libboost-dev libboost-thread-dev \
+                              libsdl2-dev \
+                              libvisa-dev
+  
+      - name: Run CMake
+        working-directory: ${{github.workspace}}
+        env:
+          CC: ${{ matrix.config.cc }}
+          CXX: ${{ matrix.config.cxx }}
+        run: |
+             mkdir build
+             cd build
+             cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+  
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        run: cmake --build . --config $BUILD_TYPE
