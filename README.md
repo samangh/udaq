@@ -32,23 +32,24 @@ is a compatibility table of which implementation can be used with which
 operating system (note that this is defined by the manufacturers, and
 not udaq).
 
-| Operating System    | R&S | National Instruments | Keysight/Agilent | Tektronix |
-|---------------------|:---:|:--------------------:|:----------------:|:---------:|
-| Windows             | ✔   | ✔                    | ✔                | ✔         |
-| macoS               | ✔   | ✔                    | ✗                | ✗         |
-| Linux CentOS / RHEL | ✔   | ✔                    | ✔                | ✗         |
-| Linux openSuSE      | ✔   | ✔                    | ✗                | ✗         |
-| Linux Ubuntu        | ✔   | ✗                    | ✔                | ✗         |
-| Linux Raspian       | ✔   | ✗                    | ✗                | ✗         |
+| Operating System    | R&S | National Instruments | Keysight/Agilent | Tektronix | Kikusui |
+|---------------------|:---:|:--------------------:|:----------------:|:---------:|:--------|
+| Windows             | ✔   | ✔                    | ✔                | ✔         | ✔       |
+| macoS               | ✔   | ✔                    | ✗                | ✗         | ✗       |
+| Linux CentOS / RHEL | ✔   | ✔                    | ✔                | ✗         | ✗       |
+| Linux openSuSE      | ✔   | ✔                    | ✗                | ✗         | ✗       |
+| Linux Ubuntu        | ✔   | ✗                    | ✔                | ✗         | ✗       |
+| Linux Raspian       | ✔   | ✗                    | ✗                | ✗         | ✗       |
 
 This software has been tested with:
 
-* Windows 10 (using all four major VISA suppliers above);
+* Windows 10 (using National Instrument VISA);
 * macOS (using National Instruments and R&S VISA);
 * Linux CentOS 8 (using National Instruments, R&S and Keysight VISA);
 * Linux openSuSE 8 (using National Instruments VISA).
 
 ## License
+
 This software is licensed under the Lesser General Public License (LGPL)
 version 2.1 ONLY, with the following exceptions:
 
