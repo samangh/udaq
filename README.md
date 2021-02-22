@@ -1,3 +1,5 @@
+# udaq [![build](https://github.com/samangh/udaq/actions/workflows/build.yml/badge.svg)](https://github.com/samangh/udaq/actions/workflows/build.yml)
+
 ## Requirements
 
 This library works on Linux, macOS and Windows.
@@ -45,3 +47,13 @@ This software has been tested with:
 * macOS (using National Instruments and R&S VISA);
 * Linux CentOS 8 (using National Instruments, R&S and Keysight VISA);
 * Linux openSuSE 8 (using National Instruments VISA).
+
+## License
+This software is licensed under the Lesser General Public License (LGPL)
+version 2.1 ONLY, with the following exceptions:
+
+1.  Any contributors grant Saman Ghannadzadeh the permission to deal
+    with their contributed code without restriction, including without
+    limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of software containing
+    their contributions.
