@@ -7,14 +7,18 @@ env:
 
 jobs:
   build:
-    name: ${{matrix.config.os}}-${{matrix.config.cc}}
+    name: ${{matrix.config.os}}-${{matrix.config.cc}}-${{matrix.config.ver}}
     runs-on: ${{ matrix.config.os }}
-    continue-on-error: true
     strategy:
       matrix:
         config:
-           - { os: ubuntu-latest, cc: gcc }
-           - { os: ubuntu-latest, cc: clang }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 7 }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 8 }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9 }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10 }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 8 }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9 }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10 }
 
     steps:
       - name: Checkout repository
@@ -25,16 +29,14 @@ jobs:
       - name: Install dependencies
         run: |
              sudo apt update
-             sudo apt install ${{ matrix.config.cc }} \
-                              libboost-dev libboost-thread-dev \
-                              libsdl2-dev \
-                              libvisa-dev
+             sudo apt install libboost-dev libboost-thread-dev \
+                              libsdl2-dev libvisa-dev
   
       - name: Run CMake
         working-directory: ${{github.workspace}}
         env:
-          CC: ${{ matrix.config.cc }}
-          CXX: ${{ matrix.config.cxx }}
+          CC: ${{ matrix.config.cc }}-${{ matrix.config.ver }}
+          CXX: ${{ matrix.config.cxx }}-${{ matrix.config.ver }}
         run: |
              mkdir build
              cd build
