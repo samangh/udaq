@@ -75,6 +75,7 @@ endif()
 
 add_subdirectory(external_cmake_wrappers/imgui)
 add_subdirectory(external_cmake_wrappers/wise_enum)
+add_subdirectory(external/sobjectizer/dev)
 
 add_subdirectory(udaq)
 add_subdirectory(gui)
@@ -82,6 +83,8 @@ add_subdirectory(gui)
 add_subdirectory(tools/scpi-simulator)
 add_subdirectory(tests/find-resource)
 add_subdirectory(tests/idn)
+
+add_subdirectory(test)
 
 # Generate target list
 get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)
