@@ -73,8 +73,8 @@ endif()
 ## Targets/Sources
 ##
 
-add_subdirectory(imgui)
 add_subdirectory(external/wise_enum)
+add_subdirectory(external_cmake_wrappers/imgui)
 
 add_subdirectory(udaq)
 add_subdirectory(gui)
