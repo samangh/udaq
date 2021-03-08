@@ -78,6 +78,7 @@ add_subdirectory(external_cmake_wrappers/imgui)
 add_subdirectory(external_cmake_wrappers/wise_enum)
 add_subdirectory(external/sobjectizer/dev)
 
+add_subdirectory(common)
 add_subdirectory(udaq)
 add_subdirectory(gui)
 
