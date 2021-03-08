@@ -49,6 +49,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(VISA REQUIRED)
 find_package(wampcc REQUIRED)
+find_package(sobjectizer REQUIRED)
 
 # Use boost statially if making a static library
 if(NOT BUILD_SHARED_LIBS)
@@ -76,7 +77,6 @@ endif()
 
 add_subdirectory(external_cmake_wrappers/imgui)
 add_subdirectory(external_cmake_wrappers/wise_enum)
-add_subdirectory(external/sobjectizer/dev)
 
 add_subdirectory(common)
 add_subdirectory(udaq)
