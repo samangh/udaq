@@ -1,4 +1,4 @@
-#include "udaq.h"
+#include "udaq/types.h"
 #include <stdlib.h>
 #include <wise_enum/wise_enum.h>
 

@@ -79,6 +79,8 @@ add_subdirectory(external_cmake_wrappers/imgui)
 add_subdirectory(external_cmake_wrappers/wise_enum)
 
 add_subdirectory(common)
+add_subdirectory(devices)
+
 add_subdirectory(udaq)
 add_subdirectory(gui)
 
