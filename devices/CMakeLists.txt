@@ -30,7 +30,7 @@ target_link_libraries(${TARGET}
   PRIVATE
     udaq
     wise_enum
-    wampcc::wampcc_shared
+    wampcc_selected
     common)
 
 ##

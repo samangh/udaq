@@ -51,6 +51,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(VISA REQUIRED)
 find_package(wampcc REQUIRED)
 
+if (BUILD_SHARED_LIBS)
+  add_library(wampcc_selected ALIAS wampcc::wampcc_shared)
+else()
+  add_library(wampcc_selected ALIAS wampcc::wampcc_static)
+endif()
+
 # Use boost statially if making a static library
 if(NOT BUILD_SHARED_LIBS)
   set(Boost_USE_STATIC_LIBS ON)

@@ -29,7 +29,7 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     wise_enum
-    wampcc::wampcc_shared
+    wampcc_selected
     VISA
   )
 
