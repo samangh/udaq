@@ -33,6 +33,7 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     imgui
+    implot
   )
 
 ##

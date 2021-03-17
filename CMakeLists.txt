@@ -75,6 +75,7 @@ endif()
 ## Targets/Sources
 ##
 
+add_subdirectory(external_cmake_wrappers/implot)
 add_subdirectory(external_cmake_wrappers/imgui)
 add_subdirectory(external_cmake_wrappers/wise_enum)
 
