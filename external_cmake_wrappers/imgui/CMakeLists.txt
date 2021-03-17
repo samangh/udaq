@@ -10,20 +10,22 @@ find_package(OpenGL REQUIRED)
 ## Source files
 ##
 
-file(GLOB SRC_FILES
-  ${IMGUI_DIR}/*.cpp
-  ${IMGUI_DIR}/examples/libs/gl3w/GL/*.c
-  ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-  ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp)
-list(REMOVE_ITEM SRC_FILES ${IMGUI_DIR}/imgui_demo.cpp)
+file(COPY ${IMGUI_DIR}/ DESTINATION ${CMAKE_CURRENT_LIST_DIR}/src
+  FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+    PATTERN "*.cpp"
+    PATTERN "*.c"
+    PATTERN "imconfig.h" EXCLUDE)
 
-# Remove upstream config, as we have one in include/
-add_custom_target(${TARGET}_remove_upstream_config)
-add_custom_command(TARGET ${TARGET}_remove_upstream_config PRE_BUILD
-  COMMAND ${CMAKE_COMMAND} -E remove ${IMGUI_DIR}/imconfig.h)
+file(GLOB SRC_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/examples/libs/gl3w/GL/*.c
+  ${CMAKE_CURRENT_LIST_DIR}/src/backends/imgui_impl_opengl3.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/backends/imgui_impl_sdl.cpp)
+list(REMOVE_ITEM SRC_FILES ${CMAKE_CURRENT_LIST_DIR}/src/imgui_demo.cpp)
 
 add_library(${TARGET} STATIC ${SRC_FILES})
-add_dependencies(${TARGET} ${TARGET}_remove_upstream_config)
 
 ##
 ## Includes
