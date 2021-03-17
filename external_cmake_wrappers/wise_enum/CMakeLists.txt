@@ -11,8 +11,6 @@ file(GLOB FILES ${PROJECT_SOURCE_DIR}/external/wise_enum/*.h)
 
 add_custom_target(${TARGET}_files )
 add_custom_command(TARGET ${TARGET}_files PRE_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${DEST})
-add_custom_command(TARGET ${TARGET}_files PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FILES} ${DEST})
 
 # Create interface target that depends on those files
