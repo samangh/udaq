@@ -12,8 +12,6 @@ file(GLOB_RECURSE SRC_FILES
 
 add_executable(${TARGET} ${SRC_FILES})
 
-find_package(Boost COMPONENTS thread REQUIRED)
-
 ##
 ## Includes
 ##
