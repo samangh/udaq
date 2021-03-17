@@ -6,5 +6,5 @@
 namespace udaq
 {
     typedef std::string uri_t;
-    typedef uint port_t;
+    typedef unsigned int port_t;
 }
