@@ -15,10 +15,15 @@ file(GLOB SRC_FILES
   ${IMGUI_DIR}/examples/libs/gl3w/GL/*.c
   ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
   ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp)
-
 list(REMOVE_ITEM SRC_FILES ${IMGUI_DIR}/imgui_demo.cpp)
 
+# Remove upstream config, as we have one in include/
+add_custom_target(${TARGET}_remove_upstream_config)
+add_custom_command(TARGET ${TARGET}_remove_upstream_config PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E remove ${IMGUI_DIR}/imconfig.h)
+
 add_library(${TARGET} STATIC ${SRC_FILES})
+add_dependencies(${TARGET} ${TARGET}_remove_upstream_config)
 
 ##
 ## Includes
