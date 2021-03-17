@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.13.4)
 if (MSVC)
   cmake_minimum_required(VERSION 3.15.0)
 
-  # The poolicy must be set before project()
+  # The policy must be set before project()
   cmake_policy(SET CMP0091 NEW)
 endif()
 
@@ -22,6 +22,7 @@ set(NAMESPACE udaq)
 
 # Set this to OFF to build static libraries
 option (BUILD_SHARED_LIBS "Build shared libraries" ON)
+option (BUILD_TESTS "Build tests and related tools" OFF)
 
 if(MSVC)
   # Note: will require SDL2 to be compiled with FORCE_STATIC_VCRT=ON
@@ -49,7 +50,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(VISA REQUIRED)
 find_package(wampcc REQUIRED)
-find_package(sobjectizer REQUIRED)
 
 # Use boost statially if making a static library
 if(NOT BUILD_SHARED_LIBS)
@@ -85,11 +85,12 @@ add_subdirectory(devices)
 add_subdirectory(udaq)
 add_subdirectory(gui)
 
-add_subdirectory(tools/scpi-simulator)
-add_subdirectory(tests/find-resource)
-add_subdirectory(tests/idn)
-
-add_subdirectory(test)
+if(BUILD_TESTS)
+  add_subdirectory(tools/scpi-simulator)
+  add_subdirectory(tests/find-resource)
+  add_subdirectory(tests/idn)
+  add_subdirectory(test)
+endif()
 
 # Generate target list
 get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)

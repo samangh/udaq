@@ -1,6 +1,8 @@
 set(TARGET test)
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
+find_package(sobjectizer REQUIRED)
+
 ##
 ## Source files
 ##
