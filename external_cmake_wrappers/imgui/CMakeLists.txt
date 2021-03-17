@@ -38,15 +38,21 @@ target_include_directories(${TARGET}
     $<BUILD_INTERFACE:${IMGUI_DIR}/examples/libs/gl3w>
   PRIVATE)
 
-# Old versions of SDL2 don't export namespace targets
-if(TARGET SDL2::SDL2)
+if(TARGET SDL2::SDL2main)
+  if(TARGET SDL2::SD2-static)
+    if (NOT BUILD_SHARED_LIBS OR NOT TARGET SDL2::SDL2)
+      set(${PROJECT}_STATIC_SDL ON)
+    endif()
+  endif()
+
   target_link_libraries(${TARGET} PUBLIC
-    SDL2::SDL2
-    SDL2::SDL2main)
+      $<IF:$<BOOL:${PROJECT}_STATIC_SDL>,SDL2::SDL2-static,SDL2::SDL2>
+      SDL2::SDL2main)
 else()
   target_include_directories(${TARGET} PUBLIC ${SDL2_INCLUDE_DIRS})
   target_link_libraries(${TARGET} PUBLIC ${SDL2_LIBRARIES})
 endif()
+
 
 target_link_libraries(${TARGET}
   INTERFACE
