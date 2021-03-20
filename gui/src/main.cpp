@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <imgui-wrapper.h>
+#include <imgui_internal.h>
 
 #include <implot.h>
 #include <cstdlib>
@@ -14,6 +15,8 @@
 #include <thread>
 #include <mutex>
 #include <shared_mutex>
+
+#include <udaq/devices/safibra/tcp_client.h>
 
 class MyContext {
   public:
@@ -103,6 +106,21 @@ void do_work(std::vector<double>& _x, std::vector<double>& _y, bool& abort, std:
     };
 }
 
+void disable_item(bool visible, std::function<void(void)> func)
+{
+    if (!visible)
+    {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    func();
+    if (!visible)
+    {
+        ImGui::PopItemFlag();
+        ImGui::PopStyleVar();
+    }
+}
+
 int main(int, char**)
 {
     auto imgui_context=initialise();
@@ -116,15 +134,18 @@ int main(int, char**)
     bool abort = false;
     std::shared_mutex mutex_;
 
-    std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
-    
+
     // Main loop
     bool done = false;
     bool updatePlot=true;
     bool autoScale = true;
+    std::atomic<bool> error_received = false;
+
+    std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
+    auto client = udaq::devices::safibra_tcp_client(xs, y);
+
     while (!done)
     {        
-
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -138,10 +159,35 @@ int main(int, char**)
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(imgui_context.window);
-        ImGui::NewFrame();
+        ImGui::NewFrame();        
 
-        //ImGui::GetStyle().WindowMinSize.x = 400;
-        //ImGui::GetStyle().WindowMinSize.y = 400;       
+        //Menu bar
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                done = ImGui::MenuItem("Exit");
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+                   
+        ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        {
+            disable_item(!client.is_running(), [&](){
+                if (ImGui::Button("Connect"))
+                {
+                    client.connect([&](const std::string message){
+                        error_received=true;
+                    });
+                }
+            });
+            ImGui::SameLine();
+            disable_item(client.is_running(), [&]() {
+                if (ImGui::Button("Disconnect"))
+                    client.disconnect();
+            });
+        }
+        ImGui::End();
+
         ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
         ImGui::Begin("Plot");
         {
@@ -163,9 +209,25 @@ int main(int, char**)
         }
         ImGui::End();
 
-        ImGui::Begin("Mis");
-        done = ImGui::Button("Exit");
-        ImGui::End();
+        if (error_received)
+        {
+            ImGui::OpenPopup("Error");
+
+           // Always center this window when appearing
+           //ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+           //ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+            if (ImGui::BeginPopupModal("Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("There was an error");
+                if (ImGui::Button("OK")) {
+                    client.disconnect();
+                    error_received = false;
+                    
+                }
+                ImGui::EndPopup();
+            }
+        }
 
         // Rendering
         ImGui::Render();
@@ -180,6 +242,8 @@ int main(int, char**)
         std::shared_lock lock(mutex_);
         abort = true;
     }
+    if (client.is_running())
+        client.disconnect();
     t.join();
 
     clean_up(imgui_context);

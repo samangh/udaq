@@ -32,6 +32,8 @@ target_link_libraries(${TARGET}
   PRIVATE
     imgui
     implot
+    devices
+    uv
   )
 
 ##

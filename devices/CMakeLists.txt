@@ -1,5 +1,7 @@
-set(TARGET "random")
+set(TARGET "devices")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
+
+#find_package(Libuv REQUIRED)
 
 ##
 ## Source files
@@ -28,6 +30,7 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
+    uv
     udaq
     wise_enum
     wampcc_selected
