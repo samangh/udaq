@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #include <iostream>
 #include <vector>
 #include <mutex>
@@ -12,29 +11,78 @@
 
 #include <udaq/devices/safibra/tcp_client.h>
 
-namespace udaq::devices {
-
-safibra_tcp_client::safibra_tcp_client(std::vector<double> &time, std::vector<double> &wavelengths):m_time(time),m_wavelengths(wavelengths){
+void close_handle(uv_handle_s* handle, void* args)
+{
+ uv_close(handle, nullptr);
 }
 
-void safibra_tcp_client::connect(on_error_cb_t on_error_cb) {
-    m_on_error_cb = on_error_cb;
-    startConn("127.0.0.1", 8081);
+namespace udaq::devices::safibra {
+
+safibra_tcp_client::safibra_tcp_client(on_error_cb_t on_error_cb):m_on_error_cb(on_error_cb){
+
+}
+
+void safibra_tcp_client::connect(const std::string& address, const int port) {
+    int err=0;
+
+    /* Loop */
+    m_loop.data = this;
+
+    /* Create destination */
+    struct sockaddr_in dest;
+    err = uv_ip4_addr(address.c_str(), port, &dest);
+    if ( err !=0)
+        throw new std::runtime_error(uv_strerror(err));
+
+    /* Create socket */
+    auto m_sock = std::make_unique<uv_tcp_t>();
+    err = uv_tcp_init(&m_loop, m_sock.get());
+    if ( err !=0)
+        throw new std::runtime_error(uv_strerror(err));
+
+    /* Create connection*/
+    auto m_conn = std::make_unique<uv_connect_t>();
+    m_conn->data=this;
+
+    uv_tcp_keepalive(m_sock.get(), 1, 60);
+    err = uv_tcp_connect(m_conn.get(), m_sock.get(), (const struct sockaddr*)&dest, on_connect);
+    if ( err !=0)
+        throw new std::runtime_error(uv_strerror(err));
+
+    m_thread = std::thread([&](){
+       while (true)
+       {
+            uv_run(&m_loop, UV_RUN_DEFAULT);
+
+            /* The following loop closing logic is from guidance from
+             * https://stackoverflow.com/questions/25615340/closing-libuv-handles-correctly */
+
+            /* stop the loop */
+            uv_stop(&m_loop);
+
+            /*  If there are any loops that are not closing:
+             *
+             *  - Use uv_walk and call uv_close on the handles;
+             *  - Run the loop again with uv_run so all close callbacks are
+             *    called and you can free the memory in the callbacks */
+            if (uv_loop_close(&m_loop) > 0)
+                uv_walk(&m_loop, &close_handle, nullptr);
+            else
+                return;
+       }
+    });
 }
 
 void safibra_tcp_client::disconnect()
 {
-    uv_stop(loop);
-    std::cout << "Diconnect called" << std::endl;
-    //m_thread.detach();
-    if (m_thread.joinable())          
-        try {
-            m_thread.join();
-        } 
-        catch (const std::system_error& e) {
-            if (e.code() != std::errc::no_such_process)
-                throw e;
-        }
+    // Signal the thread that it should stop
+    m_end = true;
+
+    // join and wait for the thread to end.
+    // Note: A thread that has finished executing code, but has not yet been joined
+    //        is still considered an active thread of execution and is therefore joinable.
+    if (m_thread.joinable())
+        m_thread.join();
 }
 
 bool safibra_tcp_client::is_running()
@@ -44,15 +92,12 @@ bool safibra_tcp_client::is_running()
 
 safibra_tcp_client::~safibra_tcp_client()
 {
-    if (is_running())
-           disconnect();
+    disconnect();
 }
 
 void safibra_tcp_client::on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
 {
-    printf("on_read. %p\n", tcp);
     if(nread >= 0) {
-        //printf("read: %s\n", tcp->data);
         printf("read: %s\n", buf->base);
     }
     else
@@ -92,23 +137,6 @@ void safibra_tcp_client::on_error()
 {
     std::cerr << "Error: received error" << std::endl;
     m_on_error_cb("Error: could not connect to instrument");
-}
-
-void safibra_tcp_client::startConn(const std::string& host, int port) {
-    loop = uv_default_loop();
-    loop->data = this;
-
-    uv_tcp_t *pSock = (uv_tcp_t *)malloc(sizeof(uv_tcp_t));
-    uv_tcp_init(loop, pSock);
-    uv_tcp_keepalive(pSock, 1, 60);
-
-    struct sockaddr_in dest;
-    uv_ip4_addr(host.c_str(), port, &dest);
-
-    uv_connect_t *pConn = (uv_connect_t *)malloc(sizeof(uv_connect_t));
-    pConn->data=this;
-    uv_tcp_connect(pConn, pSock, (const struct sockaddr*)&dest, on_connect);
-    m_thread = std::thread(uv_run, loop, UV_RUN_DEFAULT);
 }
 
 }

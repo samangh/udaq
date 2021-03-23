@@ -7,14 +7,14 @@
 #include <thread>
 #include <functional>
 
-namespace udaq::devices {
+namespace udaq::devices::safibra {
 
 typedef std::function<void(const std::string& msg)> on_error_cb_t;
 
 class safibra_tcp_client{
 public:
-    safibra_tcp_client(std::vector<double>& time, std::vector<double>& wavelengths);
-    void connect(on_error_cb_t on_error_cb);
+    safibra_tcp_client(on_error_cb_t on_error_cb);
+    void connect(const std::string& address, const int port);
     void disconnect();
     bool is_running();
     ~safibra_tcp_client();
@@ -26,12 +26,13 @@ private:
 
     void on_error();
 
-    void startConn(const std::string& host, int port);
-    uv_loop_t *loop;
+    uv_loop_t m_loop;
     std::mutex m_mutex;
     std::thread m_thread;
-    std::vector<double>& m_time;
-    std::vector<double>& m_wavelengths;
     on_error_cb_t m_on_error_cb;
+
+    std::atomic<bool> m_end;
 };
+
+
 }

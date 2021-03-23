@@ -151,7 +151,10 @@ int main(int, char**)
     std::atomic<bool> error_received = false;
 
     std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
-    auto client = udaq::devices::safibra_tcp_client(xs, y);
+    auto client = udaq::devices::safibra::safibra_tcp_client(
+                [&](const std::string message){
+                  error_received=true;
+                });
 
     while (!done)
     {        
@@ -184,9 +187,7 @@ int main(int, char**)
             disable_item(!client.is_running(), [&](){
                 if (ImGui::Button("Connect"))
                 {
-                    client.connect([&](const std::string message){
-                        error_received=true;
-                    });
+                    client.connect("127.0.0.1", 8081);
                 }
             });
             ImGui::SameLine();
@@ -203,7 +204,7 @@ int main(int, char**)
             ImGui::Checkbox("Update plot", &updatePlot);
             ImGui::SameLine();
             ImGui::Checkbox("Autoscale", &autoScale);            
-            ImGui::Text("Number of elements: %llu", xs.size());
+            ImGui::Text("Number of elements: %lu", xs.size());
 
             ImPlot::SetNextPlotLimits(0, xs.back() + 10, 0, y.back() + 10,
                                       autoScale ? ImGuiCond_::ImGuiCond_Always
