@@ -11,10 +11,116 @@
 
 #include <udaq/devices/safibra/tcp_client.h>
 
+const size_t HEADER_LENGTH = 80;
+const size_t DATA_POS = HEADER_LENGTH;
+
+const size_t SYNC_SIZE = 3;
+const size_t DEVICE_ID_POSITION = 4;
+const size_t DEVICE_ID_SIZE = 32;
+const size_t SENSOR_ID_SIZE = 32;
+const size_t PACKET_COUNTER_SIZE = 2;
+const size_t PACKET_READOUT_COUNTER_SIZE = 2;
+const size_t PACKET_BYTES_SIZE = 4;
+const size_t HEADER_CHECKSUM_SIZE = 4;
+const size_t PACKET_CHECKSUM_SIZE = 4;
+
+const size_t MINIMUM_TOTAL_SIZE = HEADER_LENGTH + PACKET_CHECKSUM_SIZE + 24;
+
+const size_t SENSOR_ID_POSITION = DEVICE_ID_POSITION + DEVICE_ID_SIZE;
+const size_t PACKET_COUNTER_POSITION = SENSOR_ID_POSITION + SENSOR_ID_SIZE;
+const size_t PACKET_READOUT_COUNTER_POSITION = PACKET_COUNTER_POSITION+PACKET_COUNTER_SIZE;
+const size_t PACKET_BYTES_POSITION = PACKET_READOUT_COUNTER_POSITION + PACKET_READOUT_COUNTER_SIZE;
+const size_t HEADER_CHECKSUM_POSITION = PACKET_BYTES_POSITION + PACKET_BYTES_SIZE;
+
+
+uint16_t bytes_to_uint32(unsigned char *buffer) {
+    return (uint32_t)buffer[0] << 24 | (uint32_t)buffer[1] << 16 |
+           (uint32_t)buffer[2] << 8 | (uint32_t)buffer[3];
+}
+
+uint16_t bytes_to_uint16(unsigned char *buf) { return (buf[1] << 8) + buf[0]; }
+
+uint64_t bytes_to_uint64_t(unsigned char* buf) {
+    unsigned long long ull;
+    memcpy(&ull, buf, sizeof(ull));
+    return ull;
+}
+
+
 void close_handle(uv_handle_s* handle, void* args)
 {
  uv_close(handle, nullptr);
 }
+
+struct Header {  
+    Header(const std::vector<char>& data) {
+        device_id = data[DEVICE_ID_POSITION];
+        sensor_id = data[SENSOR_ID_POSITION];
+        sequence_no =
+            bytes_to_uint16((unsigned char *)data[PACKET_COUNTER_POSITION]);
+        no_readouts = bytes_to_uint16(
+            (unsigned char *)data[PACKET_READOUT_COUNTER_POSITION]);
+        message_size =
+            bytes_to_uint32((unsigned char *)data[PACKET_BYTES_POSITION]);
+    }
+
+    std::string device_id;
+    std::string sensor_id;
+    uint16_t sequence_no;
+    uint16_t no_readouts;
+    uint32_t message_size;
+    char checksum[4];
+};
+
+struct Result {
+    std::vector<uint64_t> seconds;
+    std::vector<uint64_t> milliseconds;
+    double result;
+};
+
+/* Returns the position of the header sync if found, -1 otherwise*/
+int find_sync(const std::vector<char> &data) {
+    for (int i = 0; i < data.size() - 2; i++)
+        if (data[i] == 0x55 && data[i + 1] == 0x00 && data[i] == 0x55)
+            return i;
+
+    return -1;
+}
+
+double bytes_to_double(const unsigned char* buf) {
+    double d;
+    memcpy(&d, buf, sizeof d);
+    return d;
+}
+
+bool get_data(std::vector<char> &data) {
+    /* Not enough data*/
+    if (data.size() < MINIMUM_TOTAL_SIZE)
+        return false;
+
+    /* Find sync */
+    auto start = find_sync(data);    
+    if (start < 0)
+        return false;
+
+    if (start > 0)
+        data.erase(data.begin(), data.begin() + start);
+
+    if (data.size() >= HEADER_LENGTH) {
+        Header h(data);
+
+        if (data.size() >= h.message_size) {
+            Result res;
+            for (size_t i=0; i++; i < h.no_readouts) {
+                res.seconds.push_back(bytes_to_uint64_t((unsigned char *)data[DATA_POS + 24 * i]));
+                res.milliseconds.push_back(bytes_to_uint64_t((unsigned char *)data[DATA_POS + 24 * i + 8]));
+                res.result = bytes_to_double((unsigned char *)data[DATA_POS + 24 * i + 8]);
+            }
+        }
+    }
+
+}
+
 
 namespace udaq::devices::safibra {
 
@@ -27,6 +133,8 @@ void safibra_tcp_client::connect(const std::string& address, const int port) {
     uv_loop_init(&m_loop);
     m_loop.data = this;
     m_end = false;
+
+    m_readstate = ReadState::WaitingForHeader;
 
     int err=0;
 
@@ -97,11 +205,11 @@ safibra_tcp_client::~safibra_tcp_client()
 }
 
 void safibra_tcp_client::on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
-{
+{   
     /* Take ownership of the buffer, as it is now ours */
     auto _buffer = std::unique_ptr<char>(buf->base);
-
     auto a = (safibra_tcp_client*)tcp->loop->data;
+    auto data = &a->m_data;
 
     /* If requested to end, then do so */
     if (a->m_end) {
@@ -109,15 +217,18 @@ void safibra_tcp_client::on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t
         return;
     }
 
-    if(nread >= 0) {
-        printf("read: %s\n", buf->base);
-    }
-    else
-    {
-        uv_close((uv_handle_t*)tcp, nullptr);
+    if(nread < 0) {
+        uv_close((uv_handle_t *)tcp, nullptr);
         a->on_error("server dropped connection");
+        return;
     }
+
+    /* Copy data over to our application buffer*/
+    data->insert(data->end(), buf->base, buf->base + nread);
+
+    get_data(*data);
 }
+
 
 void safibra_tcp_client::on_connect(uv_connect_t *connection, int status)
 {

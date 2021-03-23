@@ -11,6 +11,12 @@ namespace udaq::devices::safibra {
 
 typedef std::function<void(const std::string& msg)> on_error_cb_t;
 
+enum class ReadState {
+    WaitingForSync,
+    WaitingForHeader,
+    WaitingforData,
+};
+
 class safibra_tcp_client{
 public:
     safibra_tcp_client(on_error_cb_t on_error_cb);
@@ -32,9 +38,11 @@ private:
     std::atomic<bool> m_end;     /* Signals the loop thread that it should end */
 
 
-
+    std::vector<char> m_data;
     std::unique_ptr<uv_tcp_t> m_sock; /* Socket used for connection */
     std::unique_ptr<uv_connect_t> m_conn; /* UV connection object */
+
+    ReadState m_readstate = ReadState::WaitingForHeader;
 
 };
 
