@@ -36,8 +36,8 @@ target_include_directories(${TARGET}
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<BUILD_INTERFACE:${IMGUI_DIR}>
-    $<BUILD_INTERFACE:${IMGUI_DIR}/examples/libs/gl3w>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/examples/libs/gl3w>
   PRIVATE)
 
 if(TARGET SDL2::SDL2main)
