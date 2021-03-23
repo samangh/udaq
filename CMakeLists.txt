@@ -93,6 +93,7 @@ add_subdirectory(gui)
 
 if(BUILD_TESTS)
   add_subdirectory(tools/scpi-simulator)
+  add_subdirectory(tools/safibra-simulator)
   add_subdirectory(tests/find-resource)
   add_subdirectory(tests/idn)
   add_subdirectory(test)
