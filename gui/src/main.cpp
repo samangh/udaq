@@ -149,11 +149,13 @@ int main(int, char**)
     bool updatePlot=true;
     bool autoScale = true;
     std::atomic<bool> error_received = false;
+    std::string error_message;
 
     std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
     auto client = udaq::devices::safibra::safibra_tcp_client(
                 [&](const std::string message){
                   error_received=true;
+                   error_message = message;
                 });
 
     while (!done)
@@ -229,7 +231,7 @@ int main(int, char**)
 
             if (ImGui::BeginPopupModal("Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text("There was an error");
+                ImGui::Text("Error: %s", error_message.c_str());
                 if (ImGui::Button("OK")) {
                     client.disconnect();
                     error_received = false;

@@ -24,14 +24,16 @@ private:
     static void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf);
     static void on_close(uv_handle_t* handle);
 
-    void on_error();
+    void on_error(const std::string &message);
 
     uv_loop_t m_loop;
-    std::mutex m_mutex;
     std::thread m_thread;
-    on_error_cb_t m_on_error_cb;
-    std::atomic<bool> m_end;
-    
+    on_error_cb_t m_on_error_cb; /* Called in case of errors after connect(...) */    
+    std::mutex m_mutex;          /* Mutex for getting data*/
+    std::atomic<bool> m_end;     /* Signals the loop thread that it should end */
+
+
+
     std::unique_ptr<uv_tcp_t> m_sock; /* Socket used for connection */
     std::unique_ptr<uv_connect_t> m_conn; /* UV connection object */
 

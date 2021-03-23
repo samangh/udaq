@@ -19,12 +19,13 @@ void close_handle(uv_handle_s* handle, void* args)
 namespace udaq::devices::safibra {
 
 safibra_tcp_client::safibra_tcp_client(on_error_cb_t on_error_cb):m_on_error_cb(on_error_cb){
+ }
+
+void safibra_tcp_client::connect(const std::string& address, const int port) {
     /* setup UV loop */
     uv_loop_init(&m_loop);
     m_loop.data = this;
-}
 
-void safibra_tcp_client::connect(const std::string& address, const int port) {
     int err=0;
 
     /* Create destination */
@@ -95,6 +96,9 @@ safibra_tcp_client::~safibra_tcp_client()
 
 void safibra_tcp_client::on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
 {
+    /* Take ownership of the buffer, as it is now ours */
+    auto _buffer = std::unique_ptr<char>(buf->base);
+
     if(nread >= 0) {
         printf("read: %s\n", buf->base);
     }
@@ -102,37 +106,33 @@ void safibra_tcp_client::on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t
     {
         uv_close((uv_handle_t*)tcp, on_close);
     }
-
-    free(buf->base);
 }
 
 void safibra_tcp_client::on_connect(uv_connect_t *connection, int status)
 {
     if (status < 0) {
-        std::cerr << "Error: failed to connect to the interrogator" << std::endl;
         auto a = (safibra_tcp_client*)(connection->data);
-        a->on_error();        
+        a->on_error(uv_strerror(status));        
         return;
     }
-    std::cout << "Connected: " << connection << status << std::endl;
 
     uv_stream_t* stream = connection->handle;    
     uv_read_start(stream, &safibra_tcp_client::alloc_cb, &safibra_tcp_client::on_read);
 }
 
 void safibra_tcp_client::alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+    /* Generate buffer for the handle */
     *buf = uv_buf_init((char*)malloc(size), size);
 }
 
 void safibra_tcp_client::on_close(uv_handle_t *handle)
 {
-    printf("closed.\n");
+
 }
 
-void safibra_tcp_client::on_error()
+void safibra_tcp_client::on_error(const std::string& message)
 {
-    std::cerr << "Error: received error" << std::endl;
-    m_on_error_cb("Error: could not connect to instrument");
+    m_on_error_cb(message);
 }
 
 }
