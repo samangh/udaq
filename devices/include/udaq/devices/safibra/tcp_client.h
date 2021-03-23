@@ -30,8 +30,11 @@ private:
     std::mutex m_mutex;
     std::thread m_thread;
     on_error_cb_t m_on_error_cb;
-
     std::atomic<bool> m_end;
+    
+    std::unique_ptr<uv_tcp_t> m_sock; /* Socket used for connection */
+    std::unique_ptr<uv_connect_t> m_conn; /* UV connection object */
+
 };
 
 

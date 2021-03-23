@@ -19,14 +19,13 @@ void close_handle(uv_handle_s* handle, void* args)
 namespace udaq::devices::safibra {
 
 safibra_tcp_client::safibra_tcp_client(on_error_cb_t on_error_cb):m_on_error_cb(on_error_cb){
-
+    /* setup UV loop */
+    uv_loop_init(&m_loop);
+    m_loop.data = this;
 }
 
 void safibra_tcp_client::connect(const std::string& address, const int port) {
     int err=0;
-
-    /* Loop */
-    m_loop.data = this;
 
     /* Create destination */
     struct sockaddr_in dest;
@@ -35,13 +34,13 @@ void safibra_tcp_client::connect(const std::string& address, const int port) {
         throw new std::runtime_error(uv_strerror(err));
 
     /* Create socket */
-    auto m_sock = std::make_unique<uv_tcp_t>();
+    m_sock = std::make_unique<uv_tcp_t>();
     err = uv_tcp_init(&m_loop, m_sock.get());
     if ( err !=0)
         throw new std::runtime_error(uv_strerror(err));
 
     /* Create connection*/
-    auto m_conn = std::make_unique<uv_connect_t>();
+    m_conn = std::make_unique<uv_connect_t>();
     m_conn->data=this;
 
     uv_tcp_keepalive(m_sock.get(), 1, 60);
@@ -50,26 +49,25 @@ void safibra_tcp_client::connect(const std::string& address, const int port) {
         throw new std::runtime_error(uv_strerror(err));
 
     m_thread = std::thread([&](){
-       while (true)
-       {
+        while (true) {
             uv_run(&m_loop, UV_RUN_DEFAULT);
 
             /* The following loop closing logic is from guidance from
-             * https://stackoverflow.com/questions/25615340/closing-libuv-handles-correctly */
-
-            /* stop the loop */
-            uv_stop(&m_loop);
-
-            /*  If there are any loops that are not closing:
+             * https://stackoverflow.com/questions/25615340/closing-libuv-handles-correctly
+             *
+             *  If there are any loops that are not closing:
              *
              *  - Use uv_walk and call uv_close on the handles;
              *  - Run the loop again with uv_run so all close callbacks are
              *    called and you can free the memory in the callbacks */
-            if (uv_loop_close(&m_loop) > 0)
-                uv_walk(&m_loop, &close_handle, nullptr);
-            else
+
+            /* Close callbacks */
+            uv_walk(&m_loop, &close_handle, nullptr);
+
+            /* Check if there are any remaining call backs*/
+            if (uv_loop_close(&m_loop) != UV_EBUSY)
                 return;
-       }
+        }
     });
 }
 
@@ -113,14 +111,12 @@ void safibra_tcp_client::on_connect(uv_connect_t *connection, int status)
     if (status < 0) {
         std::cerr << "Error: failed to connect to the interrogator" << std::endl;
         auto a = (safibra_tcp_client*)(connection->data);
-        a->on_error();
-        free(connection);
+        a->on_error();        
         return;
     }
     std::cout << "Connected: " << connection << status << std::endl;
 
-    uv_stream_t* stream = connection->handle;
-    free(connection);
+    uv_stream_t* stream = connection->handle;    
     uv_read_start(stream, &safibra_tcp_client::alloc_cb, &safibra_tcp_client::on_read);
 }
 
