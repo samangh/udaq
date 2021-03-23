@@ -18,13 +18,15 @@ void close_handle(uv_handle_s* handle, void* args)
 
 namespace udaq::devices::safibra {
 
-safibra_tcp_client::safibra_tcp_client(on_error_cb_t on_error_cb):m_on_error_cb(on_error_cb){
+safibra_tcp_client::safibra_tcp_client(on_error_cb_t on_error_cb)
+    : m_on_error_cb(on_error_cb) {
  }
 
 void safibra_tcp_client::connect(const std::string& address, const int port) {
     /* setup UV loop */
     uv_loop_init(&m_loop);
     m_loop.data = this;
+    m_end = false;
 
     int err=0;
 
@@ -86,7 +88,7 @@ void safibra_tcp_client::disconnect()
 
 bool safibra_tcp_client::is_running()
 {
-    return m_thread.joinable();
+    return m_thread.joinable()  && (uv_loop_alive(&m_loop) != 0);
 }
 
 safibra_tcp_client::~safibra_tcp_client()
@@ -99,12 +101,21 @@ void safibra_tcp_client::on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t
     /* Take ownership of the buffer, as it is now ours */
     auto _buffer = std::unique_ptr<char>(buf->base);
 
+    auto a = (safibra_tcp_client*)tcp->loop->data;
+
+    /* If requested to end, then do so */
+    if (a->m_end) {
+        uv_close((uv_handle_t *)tcp, nullptr);
+        return;
+    }
+
     if(nread >= 0) {
         printf("read: %s\n", buf->base);
     }
     else
     {
-        uv_close((uv_handle_t*)tcp, on_close);
+        uv_close((uv_handle_t*)tcp, nullptr);
+        a->on_error("server dropped connection");
     }
 }
 
@@ -112,11 +123,11 @@ void safibra_tcp_client::on_connect(uv_connect_t *connection, int status)
 {
     if (status < 0) {
         auto a = (safibra_tcp_client*)(connection->data);
-        a->on_error(uv_strerror(status));        
+        a->on_error(uv_strerror(status));
         return;
     }
 
-    uv_stream_t* stream = connection->handle;    
+    uv_stream_t* stream = connection->handle;
     uv_read_start(stream, &safibra_tcp_client::alloc_cb, &safibra_tcp_client::on_read);
 }
 
@@ -125,20 +136,9 @@ void safibra_tcp_client::alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *bu
     *buf = uv_buf_init((char*)malloc(size), size);
 }
 
-void safibra_tcp_client::on_close(uv_handle_t *handle)
-{
-
-}
-
 void safibra_tcp_client::on_error(const std::string& message)
 {
     m_on_error_cb(message);
 }
 
 }
-
-
-
-
-
-

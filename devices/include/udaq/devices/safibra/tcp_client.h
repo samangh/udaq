@@ -22,7 +22,6 @@ private:
     static void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
     static void on_connect(uv_connect_t* connection, int status);
     static void alloc_cb(uv_handle_t* handle, size_t size, uv_buf_t* buf);
-    static void on_close(uv_handle_t* handle);
 
     void on_error(const std::string &message);
 
