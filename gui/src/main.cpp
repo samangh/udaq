@@ -148,15 +148,27 @@ int main(int, char**)
     bool done = false;
     bool updatePlot=true;
     bool autoScale = true;
+
     std::atomic<bool> error_received = false;
+    std::atomic<bool> client_connected = false;    
+    std::atomic<bool> listening = false;   
     std::string error_message;
 
+    auto on_client_connected = [&]() { client_connected = true; };
+    auto on_client_disconnected = [&]() { client_connected = false; };
+    auto on_server_started = [&]() { listening = true; };
+    auto on_server_stopped = [&]() {
+        listening = false;
+        client_connected = false;
+    };
+
+    auto on_error = [&](const std::string message) {
+        error_received = true;
+        error_message = message;
+    };
+
     std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
-    auto client = udaq::devices::safibra::safibra_tcp_client(
-                [&](const std::string message){
-                  error_received=true;
-                   error_message = message;
-                });
+    auto client = udaq::devices::safibra::safibra_tcp_client(on_error, on_client_connected, on_client_disconnected, on_server_started, on_server_stopped);
 
     while (!done)
     {        
@@ -189,14 +201,17 @@ int main(int, char**)
             disable_item(!client.is_running(), [&](){
                 if (ImGui::Button("Connect"))
                 {
-                    client.connect("127.0.0.1", 8081);
+                    client.start(5555);
                 }
             });
             ImGui::SameLine();
             disable_item(client.is_running(), [&]() {
                 if (ImGui::Button("Disconnect"))
-                    client.disconnect();
+                    client.stop();
             });
+
+            ImGui::RadioButton("Listening", listening);
+            ImGui::RadioButton("Interrogator connected", client_connected);
         }
         ImGui::End();
 
@@ -233,7 +248,7 @@ int main(int, char**)
             {
                 ImGui::Text("Error: %s", error_message.c_str());
                 if (ImGui::Button("OK")) {
-                    client.disconnect();
+                    client.stop();
                     error_received = false;
                     
                 }
@@ -255,7 +270,7 @@ int main(int, char**)
         abort = true;
     }
     if (client.is_running())
-        client.disconnect();
+        client.stop();
     t.join();
 
     clean_up(imgui_context);
