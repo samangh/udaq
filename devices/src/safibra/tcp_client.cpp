@@ -11,7 +11,7 @@
 
 #include <bytes.h>
 
-#include <udaq/devices/safibra/tcp_client.h>
+#include "tcp_client.h"
 
 
 /* Call back for freeing handles after they are closed */

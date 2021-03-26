@@ -3,16 +3,13 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <vector>
 
-#include "tcp_client.h"
+#include "sensor_readout.h"
 
 namespace udaq::devices::safibra {
 
-struct FBGReadoutBuffer {
-    std::vector<uint64_t> seconds;
-    std::vector<uint64_t> milliseconds;
-    std::vector<double> readout;
-};
+class safibra_tcp_client;
 
 class SigprogServer {
   public:
@@ -32,11 +29,9 @@ class SigprogServer {
     void stop();
     bool is_running();
     
-    std::map<std::string, FBGReadoutBuffer> ReadOuts;
-
   private:
-    udaq::devices::safibra::safibra_tcp_client m_client;
-
+    std::map<std::string, SensorReadout> m_data_buffer;
+    std::unique_ptr<safibra_tcp_client> m_client;
 };
 
 }
