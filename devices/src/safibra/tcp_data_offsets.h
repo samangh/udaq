@@ -1,0 +1,29 @@
+#include <cstdlib>
+#include <vector>
+#include <string>
+#include <bytes.h>
+
+namespace udaq::devices::safibra {
+
+const size_t HEADER_LENGTH = 80;
+const size_t DATA_POS = HEADER_LENGTH;
+
+const size_t SYNC_SIZE = 3;
+const size_t DEVICE_ID_POSITION = 4;
+const size_t DEVICE_ID_SIZE = 32;
+const size_t SENSOR_ID_SIZE = 32;
+const size_t PACKET_COUNTER_SIZE = 2;
+const size_t PACKET_READOUT_COUNTER_SIZE = 2;
+const size_t PACKET_BYTES_SIZE = 4;
+const size_t HEADER_CHECKSUM_SIZE = 4;
+const size_t PACKET_CHECKSUM_SIZE = 4;
+
+const size_t MINIMUM_TOTAL_SIZE = HEADER_LENGTH + PACKET_CHECKSUM_SIZE + 24;
+
+const size_t SENSOR_ID_POSITION = DEVICE_ID_POSITION + DEVICE_ID_SIZE;
+const size_t PACKET_COUNTER_POSITION = SENSOR_ID_POSITION + SENSOR_ID_SIZE;
+const size_t PACKET_READOUT_COUNTER_POSITION = PACKET_COUNTER_POSITION+PACKET_COUNTER_SIZE;
+const size_t PACKET_BYTES_POSITION = PACKET_READOUT_COUNTER_POSITION + PACKET_READOUT_COUNTER_SIZE;
+const size_t HEADER_CHECKSUM_POSITION = PACKET_BYTES_POSITION + PACKET_BYTES_SIZE;
+
+}

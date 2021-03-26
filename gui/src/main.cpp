@@ -16,7 +16,7 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include <udaq/devices/safibra/tcp_client.h>
+#include <udaq/devices/safibra/sigproc_server.h>
 
 class MyContext {
   public:
@@ -168,7 +168,7 @@ int main(int, char**)
     };
 
     std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
-    auto client = udaq::devices::safibra::safibra_tcp_client(on_error, on_client_connected, on_client_disconnected, on_server_started, on_server_stopped);
+    auto client = udaq::devices::safibra::SigprogServer(on_error, on_client_connected, on_client_disconnected, on_server_started, on_server_stopped);
 
     while (!done)
     {        

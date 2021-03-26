@@ -9,9 +9,10 @@
 #include <system_error>
 #include <uv.h>
 
-#include <udaq/devices/safibra/tcp_client.h>
-//#include "tcp_header.h"
 #include <bytes.h>
+
+#include <udaq/devices/safibra/tcp_client.h>
+
 
 /* Call back for freeing handles after they are closed */
 void free_handle_on_close(uv_handle_t *handle) {
@@ -24,11 +25,6 @@ void close_handle(uv_handle_s* handle, void* args)
     uv_close(handle, nullptr);
 }
 
-struct Result {
-    std::vector<uint64_t> seconds;
-    std::vector<uint64_t> milliseconds;
-    double result;
-};
 
 //bool get_data(std::vector<char> &data) {
 //    /* Not enough data*/
@@ -74,9 +70,6 @@ void safibra_tcp_client::start(const int port) {
     /* setup UV loop */
     uv_loop_init(&m_loop);
     m_loop.data = this;
-    m_end = false;
-
-    m_readstate = ReadState::WaitingForHeader;
 
     int err=0;
 
