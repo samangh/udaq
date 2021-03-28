@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-
+#include <shared_mutex>
 #include "sensor_readout.h"
 
 namespace udaq::devices::safibra {
@@ -34,6 +34,7 @@ class SigprogServer {
     std::vector<unsigned char> m_stream_buffer;
     std::map<std::string, SensorReadout> m_data_buffer;
     std::unique_ptr<safibra_tcp_client> m_client;
+    mutable std::shared_mutex m_mutex;
 };
 
 }

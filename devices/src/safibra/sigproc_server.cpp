@@ -47,6 +47,8 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb(const uint8_t* 
 {
     using namespace udaq::common::bytes;
 
+    const std::lock_guard lock(m_mutex);
+
     /* Copy data to our local bufer */
     m_stream_buffer.insert(m_stream_buffer.end(), buff, buff+length);
 
@@ -92,5 +94,8 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb(const uint8_t* 
 
         msg_pos += header.message_size;
     }
+
+    /* Remove things that we have used */
+    m_stream_buffer.erase(m_stream_buffer.begin(), m_stream_buffer.begin() + msg_pos);
 
 }
