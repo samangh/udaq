@@ -127,7 +127,7 @@ safibra_tcp_client::~safibra_tcp_client()
 
 void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
 {   
-    /* Take ownership of the buffer, as it is now ours */
+    /* Take ownership of the buffer, as it is now ours. */
     auto _buffer = std::unique_ptr<char>(buf->base);
 
     auto a = (safibra_tcp_client*)client->loop->data;
