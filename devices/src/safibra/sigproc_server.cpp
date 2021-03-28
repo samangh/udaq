@@ -87,7 +87,7 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb(const uint8_t* 
         for (size_t i=0; i < header.no_readouts; ++i) {
             readout.seconds.push_back(to_uint64(&m_stream_buffer[DATA_POS + 24 * i]));
             readout.milliseconds.push_back(to_uint64(&m_stream_buffer[DATA_POS + 24 * i + 8]));
-            readout.readouts.push_back( to_double(&m_stream_buffer[DATA_POS + 24 * i + 8]));
+            readout.readouts.push_back( to_double(&m_stream_buffer[DATA_POS + 24 * i + 2*8]));
         }
 
         msg_pos += header.message_size;

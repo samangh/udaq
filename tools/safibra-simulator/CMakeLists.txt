@@ -35,6 +35,7 @@ target_link_libraries(${TARGET}
   PRIVATE
     Boost::thread
     VISA
+    common
   )
 
 ##

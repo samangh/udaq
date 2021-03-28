@@ -20,7 +20,36 @@
 #include <thread>
 #include <chrono>
 
+#include <ctime>
+#include <bytes.h>
+
 using boost::asio::ip::tcp;
+
+uint32_t compute_checksum(std::vector<unsigned char>& message, int message_size) {
+    uint32_t *p = (uint32_t *)(&message[0]);
+
+    //Sum until the last byte of the header
+    int count = (message_size)/4 - 1;
+
+    uint32_t sum = 0;
+    for (int i=0; i < count; ++i)
+        sum += p[i];
+
+    return sum;
+}
+
+template <typename T>
+void add_to_byte_array(std::vector<uint8_t>& array, T to_add, typename std::enable_if<std::is_integral<T>::value, std::nullptr_t>::type = nullptr)
+{
+    auto bytes = udaq::common::bytes::to_bytes(to_add, udaq::common::bytes::Endianess::LittleEndian);
+    array.insert(array.end(), bytes.begin(), bytes.end());
+}
+
+void add_to_byte_array(std::vector<uint8_t>& array, double to_add)
+{
+    auto bytes = udaq::common::bytes::to_bytes(to_add, udaq::common::bytes::Endianess::LittleEndian);
+    array.insert(array.end(), bytes.begin(), bytes.end());
+}
 
 void write_data(boost::asio::ip::tcp::socket& socket)
 {
@@ -29,13 +58,18 @@ void write_data(boost::asio::ip::tcp::socket& socket)
         for (int i=0; i<100; ++i)
         {
             std::string device_id = "simulated_device0";
-            auto device_id_padded =  device_id.append(std::string((32 - strlen(device_id.c_str())), '0')).c_str();
+            auto device_id_padded =  device_id.append(std::string((32 - strlen(device_id.c_str())), '\0')).c_str();
 
             std::string sensor_id = "simulated_sensor0";
-            auto sensor_id_padded = device_id.append(
-                std::string((32 - strlen(sensor_id.c_str())), '0')).c_str();
+            auto sensor_id_padded = sensor_id.append(std::string((32 - strlen(sensor_id.c_str())), '\0')).c_str();
 
-            std::vector<char> saf_header;
+            /* number of readouts*/
+            int n = 2;
+
+            /* packet size */
+            int packet_size = 80+n*24+4;
+
+            std::vector<unsigned char> saf_header;
             /* SYNC */
             saf_header.push_back(0x55);
             saf_header.push_back(0x00);
@@ -48,8 +82,24 @@ void write_data(boost::asio::ip::tcp::socket& socket)
             saf_header.insert(saf_header.end(), device_id_padded, device_id_padded + 32);
             saf_header.insert(saf_header.end(), sensor_id_padded, sensor_id_padded + 32);
 
-            saf_header.push_back(1); /* sequence no */
-            saf_header.push_back(1); /* number of readouts */
+            add_to_byte_array(saf_header, (uint16_t)1); /* sequenc no */
+            add_to_byte_array(saf_header, (uint16_t)n); /* number of readouts */
+
+            add_to_byte_array(saf_header, (uint32_t)packet_size);
+            add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, 80));
+
+            for (int i=0; i < n; ++i)
+            {
+                using namespace std::chrono;
+                auto t = system_clock::now().time_since_epoch();
+
+                add_to_byte_array(saf_header, (uint64_t)duration_cast<seconds>(t).count());
+                add_to_byte_array(saf_header, (uint64_t)duration_cast<milliseconds>(t).count());
+
+                add_to_byte_array(saf_header, (double)i);
+            }
+
+            add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
 
             boost::asio::write(socket, boost::asio::buffer(saf_header));
         }
