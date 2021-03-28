@@ -26,44 +26,16 @@ void close_handle(uv_handle_s* handle, void* args)
 }
 
 
-//bool get_data(std::vector<char> &data) {
-//    /* Not enough data*/
-//    if (data.size() < MINIMUM_TOTAL_SIZE)
-//        return false;
-//
-//    /* Find sync */
-//    auto start = find_sync(data);    
-//    if (start < 0)
-//        return false;
-//
-//    if (start > 0)
-//        data.erase(data.begin(), data.begin() + start);
-//
-//    if (data.size() >= HEADER_LENGTH) {
-//        Header h(data);
-//
-//        if (data.size() >= h.message_size) {
-//            Result res;
-//            for (size_t i=0; i++; i < h.no_readouts) {
-//                res.seconds.push_back(to_uint64((unsigned char *)data[DATA_POS + 24 * i]));
-//                res.milliseconds.push_back(to_uint64((unsigned char *)data[DATA_POS + 24 * i + 8]));
-//                res.result = to_double((unsigned char *)data[DATA_POS + 24 * i + 8]);
-//            }
-//        }
-//    }
-//
-//}
-
 namespace udaq::devices::safibra {
 
 safibra_tcp_client::safibra_tcp_client(
     on_error_cb_t on_error_cb, on_client_connected_cb_t on_client_connected_cb,
     on_client_disconnected_cb_t on_client_disconnected_cb,
-    on_start_cb_t on_start, on_stop_cb_t on_stop)
+    on_start_cb_t on_start, on_stop_cb_t on_stop, on_data_available_cb_t on_data_available_cb)
     : m_on_error_cb(on_error_cb),
       m_on_client_connected_cb(on_client_connected_cb),
       m_on_client_disconnected_cb(on_client_disconnected_cb),
-      m_on_start_cb(on_start), m_on_stop_cb(on_stop) {
+      m_on_start_cb(on_start), m_on_stop_cb(on_stop), m_on_data_available(on_data_available_cb) {
 }
 
 void safibra_tcp_client::start(const int port) {
@@ -159,7 +131,6 @@ void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_bu
     auto _buffer = std::unique_ptr<char>(buf->base);
 
     auto a = (safibra_tcp_client*)client->loop->data;
-    auto data = &a->m_data;
 
     /* Check for disconnection*/
     if(nread < 0) {
@@ -171,10 +142,8 @@ void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_bu
         return;
     }
 
-    /* Copy data over to our application buffer*/
-    data->insert(data->end(), buf->base, buf->base + nread);
-
-    //get_data(*data);
+    /* Call callback, callback should not free the buffer */
+    a->m_on_data_available((const uint8_t*)buf->base, nread);
 }
 
 void safibra_tcp_client::on_new_connection(uv_stream_t *server, int status) {

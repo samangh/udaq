@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "sensor_readout.h"
 
@@ -28,8 +29,9 @@ class SigprogServer {
     void start(const int port);
     void stop();
     bool is_running();
-    
   private:
+    void on_data_available_cb(const uint8_t*, size_t length);
+    std::vector<unsigned char> m_stream_buffer;
     std::map<std::string, SensorReadout> m_data_buffer;
     std::unique_ptr<safibra_tcp_client> m_client;
 };

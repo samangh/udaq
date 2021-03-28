@@ -1,13 +1,14 @@
-#pragma once
-#include <vector>
 #include <cstdlib>
+#include <vector>
+#include <string>
 
 namespace udaq::devices::safibra {
 
-struct SensorReadout {
+struct FBGReading
+{
     std::vector<uint64_t> seconds;
     std::vector<uint64_t> milliseconds;
-    std::vector<double> readouts;
+    std::vector<double> readings;
 };
 
 }

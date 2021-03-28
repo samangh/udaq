@@ -6,6 +6,7 @@
 #include <shared_mutex>
 #include <thread>
 #include <functional>
+#include <memory>
 
 
 namespace udaq::devices::safibra {
@@ -18,13 +19,14 @@ public:
     typedef std::function<void(void)> on_client_disconnected_cb_t;
     typedef std::function<void(void)> on_start_cb_t;
     typedef std::function<void(void)> on_stop_cb_t;
-
+    typedef std::function<void(const uint8_t* buff, size_t length)> on_data_available_cb_t; /* Callback should NOT free the buffer */
 
     safibra_tcp_client(on_error_cb_t on_error_cb,
                        on_client_connected_cb_t on_client_connected_cb,
                        on_client_disconnected_cb_t on_client_disconnected_cb,
-                     on_start_cb_t on_start,
-                     on_stop_cb_t on_stop);
+                       on_start_cb_t on_start,
+                       on_stop_cb_t on_stop,
+                       on_data_available_cb_t on_data_available_cb);
     void start(const int port);
     void stop();
     bool is_running();
@@ -47,8 +49,8 @@ private:
     on_client_disconnected_cb_t m_on_client_disconnected_cb;
     on_start_cb_t m_on_start_cb;
     on_stop_cb_t m_on_stop_cb;
+    on_data_available_cb_t m_on_data_available;
 
-    std::vector<char> m_data;
     std::unique_ptr<uv_tcp_t> m_sock; /* Socket used for connection */
     std::unique_ptr<uv_connect_t> m_conn; /* UV connection object */     
     std::unique_ptr<uv_async_t> m_async; /* For stopping the loop */    
