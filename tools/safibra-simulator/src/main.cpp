@@ -90,15 +90,17 @@ void write_data(boost::asio::ip::tcp::socket& socket)
             add_to_byte_array(saf_header, (uint32_t)packet_size);
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, 80));
 
-            for (int i=0; i < n; ++i)
+            for (int k=0; k < n; ++k)
             {
-                using namespace std::chrono;
-                auto t = system_clock::now().time_since_epoch();
+                auto t = std::chrono::system_clock::now().time_since_epoch();
+                auto seconds = std::chrono::duration_cast<std::chrono::seconds>(t).count();
+                auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
+                auto ms_safira = 1E3*(milliseconds - (seconds*1E3));
 
-                add_to_byte_array(saf_header, (uint64_t)duration_cast<seconds>(t).count());
-                add_to_byte_array(saf_header, (uint64_t)duration_cast<milliseconds>(t).count());
+                add_to_byte_array(saf_header, (uint64_t)seconds);
+                add_to_byte_array(saf_header, (uint64_t)ms_safira);
 
-                add_to_byte_array(saf_header, (double)i);
+                add_to_byte_array(saf_header, (double)(i+k));
             }
 
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
