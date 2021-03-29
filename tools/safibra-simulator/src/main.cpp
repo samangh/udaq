@@ -23,6 +23,8 @@
 #include <ctime>
 #include <bytes.h>
 
+#include <cmath>
+
 using boost::asio::ip::tcp;
 
 uint32_t compute_checksum(std::vector<unsigned char>& message, int message_size) {
@@ -55,18 +57,20 @@ void write_data(boost::asio::ip::tcp::socket& socket)
 {
     using namespace std::chrono_literals;
 
-        for (int i=0; i<100; ++i)
+    /* number of readouts per packet*/
+    int n = 20;
+
+    /* i is sequenc number */
+     for (int i=0; ; ++i )
+       for (std::string sensor_id: {"sensor0", "sensor1"})
         {
-            std::this_thread::sleep_for(200ms);
+            std::this_thread::sleep_for(10ms);
 
             std::string device_id = "simulated_device0";
             auto device_id_padded =  device_id.append(std::string((32 - strlen(device_id.c_str())), '\0')).c_str();
 
-            std::string sensor_id = "simulated_sensor0";
+            //std::string sensor_id = "simulated_sensor0";
             auto sensor_id_padded = sensor_id.append(std::string((32 - strlen(sensor_id.c_str())), '\0')).c_str();
-
-            /* number of readouts*/
-            int n = 2;
 
             /* packet size */
             int packet_size = 80+n*24+4;
@@ -100,7 +104,7 @@ void write_data(boost::asio::ip::tcp::socket& socket)
                 add_to_byte_array(saf_header, (uint64_t)seconds);
                 add_to_byte_array(saf_header, (uint64_t)ms_safira);
 
-                add_to_byte_array(saf_header, (double)(i+k));
+                add_to_byte_array(saf_header, sin(milliseconds*1E-3*M_PI/60));
             }
 
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
