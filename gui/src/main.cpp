@@ -107,17 +107,16 @@ MyContext initialise() {
 
 void disable_item(bool visible, std::function<void(void)> func)
 {
-    if (!visible)
+    if (visible)
     {
         ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-    }
-    func();
-    if (!visible)
-    {
+        func();
         ImGui::PopItemFlag();
         ImGui::PopStyleVar();
     }
+    else
+        func();
 }
 
 struct AxisMinMax
@@ -181,6 +180,11 @@ void add_fbg_data(std::map<std::string, FBGData>& data,
     }
 }
 
+bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
+{
+    return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
+}
+
 int main(int, char**)
 {
     auto imgui_context=initialise();
@@ -200,6 +204,8 @@ int main(int, char**)
     std::atomic<bool> client_connected = false;    
     std::atomic<bool> listening = false;   
     std::string error_message;
+
+    int port = 5555;
 
     auto on_client_connected = [&]() { client_connected = true; };
     auto on_client_disconnected = [&]() { client_connected = false; };
@@ -253,15 +259,22 @@ int main(int, char**)
                    
         ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
         {
-            disable_item(!client.is_running(), [&](){
-                if (ImGui::Button("Connect"))
+            disable_item(client.is_running(), [&]() {
+                ImGui::Text("Port:"); ImGui::SameLine();
+                ImGui::PushItemWidth(100);
+                ImGui::InputInt("##Port", &port);
+                ImGui::PopItemWidth();
+            });
+
+            disable_item(client.is_running(), [&](){
+                if (ImGui::Button("Listen"))
                 {
-                    client.start(5555);
+                    client.start(port);
                 }
             });
             ImGui::SameLine();
-            disable_item(client.is_running(), [&]() {
-                if (ImGui::Button("Disconnect"))
+            disable_item(!client.is_running(), [&]() {
+                if (ImGui::Button("Stop Listening"))
                     client.stop();
             });
             
@@ -270,6 +283,17 @@ int main(int, char**)
             ImGui::RadioButton("Listening", listening);
             ImGui::RadioButton("Interrogator connected", client_connected);
 
+            {
+                std::shared_lock lock(mutex_);
+                 if (data.size() >0)
+                 {
+                     ImGui::Separator();
+                     ImGui::Text("Plot:");
+                     for (auto& [legend, fbg] : data)
+                         ImGui::Checkbox(legend.c_str(), &fbg.showPlot);
+                 }
+            }
+
         }        
         ImGui::End();
 
@@ -277,13 +301,15 @@ int main(int, char**)
             std::shared_lock lock(mutex_);
 
             for (auto& [legend, fbg] : data)
-                if (fbg.time().size() > 0)
+                if (fbg.showPlot && fbg.time().size() > 0)
                 {
 
                     ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
                     ImGui::Begin(legend.c_str());
 
                     ImGui::Checkbox("Autoscale", &fbg.autoScale);
+                    ImGui::SameLine();
+                    ImGui::Text("Average rate: %f Hz", fbg.size()/(fbg.time().back() - fbg.time().front()));
 
                     ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum, 
                         fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum, 
