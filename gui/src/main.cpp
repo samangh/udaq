@@ -15,8 +15,10 @@
 #include <thread>
 #include <mutex>
 #include <shared_mutex>
+#include <algorithm>
 
 #include <udaq/devices/safibra/sigproc_server.h>
+#include <udaq/common/vector.h>
 
 class MyContext {
   public:
@@ -103,18 +105,6 @@ MyContext initialise() {
     return imgui_context;
 }
 
-void do_work(std::vector<double>& _x, std::vector<double>& _y, bool& abort, std::shared_mutex& _mutex) {
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-        std::unique_lock lock(_mutex);
-        _x.push_back(_x.size());
-        _y.push_back(_y.size());
-        if (abort)
-            break;
-    };
-}
-
 void disable_item(bool visible, std::function<void(void)> func)
 {
     if (!visible)
@@ -130,6 +120,67 @@ void disable_item(bool visible, std::function<void(void)> func)
     }
 }
 
+struct AxisMinMax
+{
+    double minimum;
+    double maximum;    
+};
+
+struct FBGData
+{
+public:
+    bool showPlot;
+    bool autoScale = true;
+
+    void add(udaq::devices::safibra::SensorReadout in)
+    {
+        using namespace udaq::common;
+
+        vector::append(m_wavelength, in.readouts);
+        vector::append(m_time, in.time);
+
+        auto y_minmax = std::minmax_element(std::begin(m_wavelength), std::end(m_wavelength));
+        m_wavelength_minmax.minimum = *y_minmax.first;
+        m_wavelength_minmax.maximum = *y_minmax.second;
+
+        m_time_minmax.minimum = m_time.front();
+        m_time_minmax.maximum = m_time.back();
+    }
+
+    std::vector<double> time() const { return m_time; }
+    std::vector<double> wavelength() const { return m_wavelength; }
+    AxisMinMax time_minmax() const
+    { 
+        return m_time_minmax; 
+    } 
+    AxisMinMax twavelength_minmax() const
+    { 
+        return m_wavelength_minmax; 
+    }
+    size_t size() const { return m_time.size(); }
+private:
+    std::vector<double> m_time;
+    std::vector<double> m_wavelength;
+    AxisMinMax m_time_minmax;
+    AxisMinMax m_wavelength_minmax;
+};
+
+void add_fbg_data(std::map<std::string, FBGData>& data,
+    const std::map<std::string, udaq::devices::safibra::SensorReadout> &data_in) {
+    using namespace udaq::common;
+
+    for (const auto &[name, value] : data_in) {
+        auto find = data.find(name);
+        if (find == std::end(data))
+        {
+            data.insert({ name, FBGData() });
+            find = data.find(name);
+        }
+        
+        find->second.add(value);        
+    }
+}
+
 int main(int, char**)
 {
     auto imgui_context=initialise();
@@ -138,16 +189,12 @@ int main(int, char**)
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    std::vector<double> xs;
-    std::vector<double> y;
-    bool abort = false;
     std::shared_mutex mutex_;
 
+    std::map<std::string, FBGData> data;
 
     // Main loop
     bool done = false;
-    bool updatePlot=true;
-    bool autoScale = true;
 
     std::atomic<bool> error_received = false;
     std::atomic<bool> client_connected = false;    
@@ -162,13 +209,21 @@ int main(int, char**)
         client_connected = false;
     };
 
+    auto on_data_available =
+        [&](std::unique_ptr<std::map<std::string, udaq::devices::safibra::SensorReadout>> data_in) {
+            std::unique_lock lock(mutex_);
+            add_fbg_data(data, *data_in.get());
+    };
+
     auto on_error = [&](const std::string message) {
         error_received = true;
         error_message = message;
     };
 
-    std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
-    auto client = udaq::devices::safibra::SigprogServer(on_error, on_client_connected, on_client_disconnected, on_server_started, on_server_stopped);
+    //std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
+    auto client = udaq::devices::safibra::SigprogServer(
+        on_error, on_client_connected, on_client_disconnected,
+        on_server_started, on_server_stopped, on_data_available);
 
     while (!done)
     {        
@@ -209,32 +264,37 @@ int main(int, char**)
                 if (ImGui::Button("Disconnect"))
                     client.stop();
             });
+            
+            ImGui::Separator();
 
             ImGui::RadioButton("Listening", listening);
             ImGui::RadioButton("Interrogator connected", client_connected);
-        }
+
+        }        
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
-        ImGui::Begin("Plot");
-        {
-            ImGui::Checkbox("Update plot", &updatePlot);
-            ImGui::SameLine();
-            ImGui::Checkbox("Autoscale", &autoScale);            
-            ImGui::Text("Number of elements: %lu", xs.size());
+        if (data.size() >0){
+            std::shared_lock lock(mutex_);
 
-            ImPlot::SetNextPlotLimits(0, xs.back() + 10, 0, y.back() + 10,
-                                      autoScale ? ImGuiCond_::ImGuiCond_Always
-                                                : ImGuiCond_::ImGuiCond_Once);
-            if (ImPlot::BeginPlot("Log Plot", NULL, NULL, ImVec2(-1, -1),
-                                  ImGuiCond_::ImGuiCond_Always)) {
-                std::shared_lock lock(mutex_);
-                ImPlot::PlotLine("f(x) = x", xs.data(), y.data(),
-                                 (int)xs.size());
-                ImPlot::EndPlot();
-            }
-        }
-        ImGui::End();
+            for (auto& [legend, fbg] : data)
+                if (fbg.time().size() > 0)
+                {
+
+                    ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
+                    ImGui::Begin(legend.c_str());
+
+                    ImGui::Checkbox("Autoscale", &fbg.autoScale);
+
+                    ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum, 
+                        fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum, 
+                        fbg.autoScale ? ImGuiCond_::ImGuiCond_Always : ImGuiCond_::ImGuiCond_Once);
+                    if (ImPlot::BeginPlot(legend.c_str(), NULL, NULL, ImVec2(-1, -1), ImGuiCond_::ImGuiCond_Always, ImPlotAxisFlags_Time)) {
+                        ImPlot::PlotLine(legend.c_str(), &fbg.time()[0], &fbg.wavelength()[0], (int)(fbg.size()));
+                        ImPlot::EndPlot();
+                    }
+                    ImGui::End();
+                }
+         }
 
         if (error_received)
         {
@@ -265,13 +325,9 @@ int main(int, char**)
         SDL_GL_SwapWindow(imgui_context.window);
     }
 
-    {
-        std::shared_lock lock(mutex_);
-        abort = true;
-    }
+
     if (client.is_running())
         client.stop();
-    t.join();
 
     clean_up(imgui_context);
 

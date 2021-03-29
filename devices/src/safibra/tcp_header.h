@@ -18,7 +18,7 @@ struct Header {
      std::vector<char> sensor_id_c;
 
      device_id_c.insert(device_id_c.begin(), &data[start_pos + DEVICE_ID_POSITION], &data[start_pos + DEVICE_ID_POSITION] + 32 );
-     sensor_id_c.insert(sensor_id_c.begin(), &data[start_pos + DEVICE_ID_POSITION], &data[start_pos + DEVICE_ID_POSITION] + 32 );
+     sensor_id_c.insert(sensor_id_c.begin(), &data[start_pos + SENSOR_ID_POSITION], &data[start_pos + SENSOR_ID_POSITION] + 32 );
 
      device_id = std::string(device_id_c.data());
      sensor_id = std::string(sensor_id_c.data());

@@ -34,6 +34,7 @@ target_link_libraries(${TARGET}
     implot
     devices
     uv
+    common
   )
 
 ##

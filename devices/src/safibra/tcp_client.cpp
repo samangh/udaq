@@ -136,7 +136,7 @@ void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_bu
     if(nread < 0) {
         uv_close((uv_handle_t *)client, free_handle_on_close);       
         if (nread != UV_EOF)
-            a->on_error("read error");
+            a->on_error(uv_strerror(nread));                 
         else
             a->m_on_client_disconnected_cb();
         return;
