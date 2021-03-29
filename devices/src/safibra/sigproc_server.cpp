@@ -24,6 +24,7 @@ udaq::devices::safibra::SigprogServer::SigprogServer(
         on_error_cb_t on_error_cb, on_client_connected_cb_t on_client_connected_cb,
         on_client_disconnected_cb_t on_client_disconnected_cb,
         on_start_cb_t on_start, on_stop_cb_t on_stop):
+        m_data_buffer(std::make_unique<std::map<std::string, SensorReadout>>()),
         m_client(std::make_unique<safibra_tcp_client>(on_error_cb,
                                                       on_client_connected_cb,
                                                       on_client_disconnected_cb,

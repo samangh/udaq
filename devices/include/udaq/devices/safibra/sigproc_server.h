@@ -32,7 +32,7 @@ class SigprogServer {
   private:
     void on_data_available_cb(const uint8_t*, size_t length);
     std::vector<unsigned char> m_stream_buffer;
-    std::map<std::string, SensorReadout> m_data_buffer;
+    std::unique_ptr<std::map<std::string, SensorReadout>> m_data_buffer;
     std::unique_ptr<safibra_tcp_client> m_client;
     mutable std::shared_mutex m_mutex;
 };
