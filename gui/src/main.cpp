@@ -216,9 +216,9 @@ int main(int, char**)
     };
 
     auto on_data_available =
-        [&](std::unique_ptr<std::map<std::string, udaq::devices::safibra::SensorReadout>> data_in) {
+        [&](std::map<std::string, udaq::devices::safibra::SensorReadout> data_in) {
             std::unique_lock lock(mutex_);
-            add_fbg_data(data, *data_in.get());
+            add_fbg_data(data, data_in);
     };
 
     auto on_error = [&](const std::string message) {
