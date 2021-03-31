@@ -62,9 +62,9 @@ void write_data(boost::asio::ip::tcp::socket& socket)
 
     /* i is sequenc number */
      for (int i=0; ; ++i )
-       for (std::string sensor_id: {"sensor0", "sensor1"})
+       for (std::string sensor_id: {"sensor0", "sensor1", "sensor2", "sensor3"})
         {
-            std::this_thread::sleep_for(0.1ms);
+            std::this_thread::sleep_for(25us);
 
             std::string device_id = "simulated_device0";
             auto device_id_padded =  device_id.append(std::string((32 - strlen(device_id.c_str())), '\0')).c_str();
