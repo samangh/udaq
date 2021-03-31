@@ -20,6 +20,8 @@
 #include <udaq/devices/safibra/sigproc_server.h>
 #include <udaq/common/vector.h>
 
+#include <math.h>
+
 class MyContext {
   public:
     SDL_Window *window;
@@ -97,7 +99,7 @@ MyContext initialise() {
     ImGui::StyleColorsDark();
     ImGui::GetStyle().WindowRounding = 5.0f;
 
-    
+
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(imgui_context.window, imgui_context.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -122,7 +124,7 @@ void disable_item(bool visible, std::function<void(void)> func)
 struct AxisMinMax
 {
     double minimum;
-    double maximum;    
+    double maximum;
 };
 
 struct FBGData
@@ -135,26 +137,43 @@ public:
     {
         using namespace udaq::common;
 
+        if (size() == 0)
+        {
+            auto y_minmax = std::minmax_element(std::begin(in.readouts), std::end(in.readouts));
+            m_wavelength_minmax.minimum = *y_minmax.first;
+            m_wavelength_minmax.maximum = *y_minmax.second;
+
+            m_time_minmax.minimum = in.time.front();
+            m_time_minmax.maximum = in.time.back();
+        }
+        else
+        {
+            auto y_minmax = std::minmax_element(std::begin(in.readouts), std::end(in.readouts));
+            double in_y_min = *y_minmax.first;
+            double in_y_max = *y_minmax.second;
+
+            m_wavelength_minmax.minimum = (in_y_min < m_wavelength_minmax.minimum ) ? in_y_min : m_wavelength_minmax.minimum;
+            m_wavelength_minmax.maximum = (in_y_max > m_wavelength_minmax.maximum) ? in_y_max : m_wavelength_minmax.maximum;
+
+            m_time_minmax.maximum = in.time.back();
+        }
+
+
         vector::append(m_wavelength, in.readouts);
         vector::append(m_time, in.time);
 
-        auto y_minmax = std::minmax_element(std::begin(m_wavelength), std::end(m_wavelength));
-        m_wavelength_minmax.minimum = *y_minmax.first;
-        m_wavelength_minmax.maximum = *y_minmax.second;
-
-        m_time_minmax.minimum = m_time.front();
-        m_time_minmax.maximum = m_time.back();
     }
 
-    std::vector<double> time() const { return m_time; }
-    std::vector<double> wavelength() const { return m_wavelength; }
+
+    const std::vector<double>& time() const { return m_time; }
+    const std::vector<double>& wavelength() const { return m_wavelength; }
     AxisMinMax time_minmax() const
-    { 
-        return m_time_minmax; 
-    } 
+    {
+        return m_time_minmax;
+    }
     AxisMinMax twavelength_minmax() const
-    { 
-        return m_wavelength_minmax; 
+    {
+        return m_wavelength_minmax;
     }
     size_t size() const { return m_time.size(); }
 private:
@@ -175,8 +194,8 @@ void add_fbg_data(std::map<std::string, FBGData>& data,
             data.insert({ name, FBGData() });
             find = data.find(name);
         }
-        
-        find->second.add(value);        
+
+        find->second.add(value);
     }
 }
 
@@ -184,6 +203,7 @@ bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
 {
     return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
 }
+
 
 int main(int, char**)
 {
@@ -201,8 +221,8 @@ int main(int, char**)
     bool done = false;
 
     std::atomic<bool> error_received = false;
-    std::atomic<bool> client_connected = false;    
-    std::atomic<bool> listening = false;   
+    std::atomic<bool> client_connected = false;
+    std::atomic<bool> listening = false;
     std::string error_message;
 
     int port = 5555;
@@ -232,7 +252,7 @@ int main(int, char**)
         on_server_started, on_server_stopped, on_data_available);
 
     while (!done)
-    {        
+    {
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -246,7 +266,7 @@ int main(int, char**)
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(imgui_context.window);
-        ImGui::NewFrame();        
+        ImGui::NewFrame();
 
         //Menu bar
         if (ImGui::BeginMainMenuBar()) {
@@ -256,7 +276,7 @@ int main(int, char**)
             }
             ImGui::EndMainMenuBar();
         }
-                   
+
         ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
         {
             disable_item(client.is_running(), [&]() {
@@ -277,7 +297,7 @@ int main(int, char**)
                 if (ImGui::Button("Stop Listening"))
                     client.stop();
             });
-            
+
             ImGui::Separator();
 
             ImGui::RadioButton("Listening", listening);
@@ -294,7 +314,7 @@ int main(int, char**)
                  }
             }
 
-        }        
+        }
         ImGui::End();
 
         if (data.size() >0){
@@ -311,11 +331,32 @@ int main(int, char**)
                     ImGui::SameLine();
                     ImGui::Text("Average rate: %f Hz", fbg.size()/(fbg.time().back() - fbg.time().front()));
 
-                    ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum, 
-                        fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum, 
+                    ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum,
+                        fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum,
                         fbg.autoScale ? ImGuiCond_::ImGuiCond_Always : ImGuiCond_::ImGuiCond_Once);
                     if (ImPlot::BeginPlot(legend.c_str(), NULL, NULL, ImVec2(-1, -1), ImGuiCond_::ImGuiCond_Always, ImPlotAxisFlags_Time)) {
-                        ImPlot::PlotLine(legend.c_str(), &fbg.time()[0], &fbg.wavelength()[0], (int)(fbg.size()));
+
+                        if (fbg.size() > 10000)
+                        {
+                            using namespace udaq::common;
+                            auto start_index = vector::upper_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Min);
+                            auto end_index = vector::lower_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Max);
+
+                            int seperation = end_index - start_index;
+                            if (seperation < 1000)
+                                ImPlot::PlotLine(legend.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], seperation);
+                            else
+                            {
+                                int stride_length = ceil(seperation / 1000.0);
+                                int count = floor(seperation / (double)stride_length);
+                                ImPlot::PlotLine(legend.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], count, 0, sizeof(double)*stride_length);
+                            }
+                        }
+                        else
+                        {
+                            ImPlot::PlotLine(legend.c_str(), &fbg.time()[0], &fbg.wavelength()[0], (int)(fbg.size()));
+                        }
+
                         ImPlot::EndPlot();
                     }
                     ImGui::End();
@@ -336,7 +377,7 @@ int main(int, char**)
                 if (ImGui::Button("OK")) {
                     client.stop();
                     error_received = false;
-                    
+
                 }
                 ImGui::EndPopup();
             }
