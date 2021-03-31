@@ -152,16 +152,14 @@ public:
             double in_y_min = *y_minmax.first;
             double in_y_max = *y_minmax.second;
 
-            m_wavelength_minmax.minimum = (in_y_min < m_wavelength_minmax.minimum ) ? in_y_min : m_wavelength_minmax.minimum;
+            m_wavelength_minmax.minimum = (in_y_min < m_wavelength_minmax.minimum) ? in_y_min : m_wavelength_minmax.minimum;
             m_wavelength_minmax.maximum = (in_y_max > m_wavelength_minmax.maximum) ? in_y_max : m_wavelength_minmax.maximum;
 
             m_time_minmax.maximum = in.time.back();
         }
 
-
         vector::append(m_wavelength, in.readouts);
         vector::append(m_time, in.time);
-
     }
 
 
@@ -176,6 +174,13 @@ public:
         return m_wavelength_minmax;
     }
     size_t size() const { return m_time.size(); }
+    void clear()
+    {
+        m_time.clear();
+        m_wavelength.clear();
+        m_time_minmax = AxisMinMax();
+        m_wavelength_minmax = AxisMinMax();
+    }
 private:
     std::vector<double> m_time;
     std::vector<double> m_wavelength;
@@ -274,6 +279,9 @@ int main(int, char**)
                 done = ImGui::MenuItem("Exit");
                 ImGui::EndMenu();
             }
+            ImGui::SameLine(ImGui::GetIO().DisplaySize.x - 60.f);
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
             ImGui::EndMainMenuBar();
         }
 
@@ -311,6 +319,10 @@ int main(int, char**)
                      ImGui::Text("Plot:");
                      for (auto& [legend, fbg] : data)
                          ImGui::Checkbox(legend.c_str(), &fbg.showPlot);
+
+                     if (ImGui::Button("Clear all data"))
+                         for (auto& [legend, fbg] : data)
+                             fbg.clear();
                  }
             }
 
@@ -329,7 +341,7 @@ int main(int, char**)
 
                     ImGui::Checkbox("Autoscale", &fbg.autoScale);
                     ImGui::SameLine();
-                    ImGui::Text("Average rate: %f Hz", fbg.size()/(fbg.time().back() - fbg.time().front()));
+                    ImGui::Text("Average rate: %.1f Hz", fbg.size()/(fbg.time().back() - fbg.time().front()));
 
                     ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum,
                         fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum,
