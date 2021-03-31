@@ -64,7 +64,7 @@ void write_data(boost::asio::ip::tcp::socket& socket)
      for (int i=0; ; ++i )
        for (std::string sensor_id: {"sensor0", "sensor1"})
         {
-            std::this_thread::sleep_for(10ms);
+            std::this_thread::sleep_for(0.1ms);
 
             std::string device_id = "simulated_device0";
             auto device_id_padded =  device_id.append(std::string((32 - strlen(device_id.c_str())), '\0')).c_str();
@@ -104,7 +104,7 @@ void write_data(boost::asio::ip::tcp::socket& socket)
                 add_to_byte_array(saf_header, (uint64_t)seconds);
                 add_to_byte_array(saf_header, (uint64_t)ms_safira);
 
-                add_to_byte_array(saf_header, sin(milliseconds*1E-3*M_PI/60));
+                add_to_byte_array(saf_header, sin(milliseconds*1E-3*3.14/60) + 0.1*sin(milliseconds * 1E-3 * 3.14));
             }
 
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
