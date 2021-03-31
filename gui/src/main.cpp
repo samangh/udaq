@@ -188,20 +188,12 @@ private:
     AxisMinMax m_wavelength_minmax;
 };
 
-void add_fbg_data(std::map<std::string, FBGData>& data,
-    const std::map<std::string, udaq::devices::safibra::SensorReadout> &data_in) {
+void add_fbg_data(std::map<std::string, std::map<std::string, FBGData>>& data,
+    const std::vector<udaq::devices::safibra::SensorReadout> &data_in) {
     using namespace udaq::common;
-
-    for (const auto &[name, value] : data_in) {
-        auto find = data.find(name);
-        if (find == std::end(data))
-        {
-            data.insert({ name, FBGData() });
-            find = data.find(name);
-        }
-
-        find->second.add(value);
-    }
+    for (const auto& fbg : data_in)
+        data[fbg.device_id][fbg.sensor_id].add(fbg);
+    
 }
 
 bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
@@ -220,7 +212,7 @@ int main(int, char**)
 
     std::shared_mutex mutex_;
 
-    std::map<std::string, FBGData> data;
+    std::map<std::string, std::map<std::string, FBGData>> data;
 
     // Main loop
     bool done = false;
@@ -231,6 +223,7 @@ int main(int, char**)
     std::string error_message;
 
     int port = 5555;
+    unsigned int downsample_points = 1000;
 
     auto on_client_connected = [&]() { client_connected = true; };
     auto on_client_disconnected = [&]() { client_connected = false; };
@@ -241,7 +234,7 @@ int main(int, char**)
     };
 
     auto on_data_available =
-        [&](std::map<std::string, udaq::devices::safibra::SensorReadout> data_in) {
+        [&](std::vector<udaq::devices::safibra::SensorReadout> data_in) {
             std::unique_lock lock(mutex_);
             add_fbg_data(data, data_in);
     };
@@ -273,17 +266,21 @@ int main(int, char**)
         ImGui_ImplSDL2_NewFrame(imgui_context.window);
         ImGui::NewFrame();
 
+        
+
         //Menu bar
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 done = ImGui::MenuItem("Exit");
                 ImGui::EndMenu();
             }
+
             ImGui::SameLine(ImGui::GetIO().DisplaySize.x - 60.f);
             ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
             ImGui::EndMainMenuBar();
         }
+
 
         ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
         {
@@ -311,19 +308,28 @@ int main(int, char**)
             ImGui::RadioButton("Listening", listening);
             ImGui::RadioButton("Interrogator connected", client_connected);
 
+
             {
                 std::shared_lock lock(mutex_);
-                 if (data.size() >0)
-                 {
-                     ImGui::Separator();
-                     ImGui::Text("Plot:");
-                     for (auto& [legend, fbg] : data)
-                         ImGui::Checkbox(legend.c_str(), &fbg.showPlot);
+                if (data.size() > 0)
+                {
+                    ImGui::Separator();
+                    ImGui::Text("Interrogators:");
+                    for (auto& [device, sensors] : data)
+                        if (ImGui::TreeNode(device.c_str()))
+                        {
+                            for (auto& [sensor, fbg] : sensors)
+                                ImGui::Checkbox(sensor.c_str(), &fbg.showPlot);
+                            ImGui::TreePop();
+                        }
 
-                     if (ImGui::Button("Clear all data"))
-                         for (auto& [legend, fbg] : data)
-                             fbg.clear();
-                 }
+
+                    if (ImGui::Button("Clear all data"))
+                        for (auto& [device, sensors] : data)
+                            for (auto& [sensor, fbg] : sensors)
+                                fbg.clear();
+                }
+                 
             }
 
         }
@@ -332,41 +338,46 @@ int main(int, char**)
         if (data.size() >0){
             std::shared_lock lock(mutex_);
 
-            for (auto& [legend, fbg] : data)
-                if (fbg.showPlot && fbg.time().size() > 0)
+            for (auto& [device, sensors] : data)
+
+                for (auto& [sensor_id, fbg] : sensors)
+                    if (fbg.showPlot && fbg.time().size() > 0)
                 {
 
                     ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
-                    ImGui::Begin(legend.c_str());
+                    ImGui::Begin(sensor_id.c_str());
 
                     ImGui::Checkbox("Autoscale", &fbg.autoScale);
-                    ImGui::SameLine();
-                    ImGui::Text("Average rate: %.1f Hz", fbg.size()/(fbg.time().back() - fbg.time().front()));
+                    if (fbg.size() > 100)
+                    {
+                        ImGui::SameLine();
+                        ImGui::Text("Average rate: %.1f Hz", 100.0 / (fbg.time().back() - fbg.time()[fbg.size()-100] ));
+                    }
 
                     ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum,
                         fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum,
                         fbg.autoScale ? ImGuiCond_::ImGuiCond_Always : ImGuiCond_::ImGuiCond_Once);
-                    if (ImPlot::BeginPlot(legend.c_str(), NULL, NULL, ImVec2(-1, -1), ImGuiCond_::ImGuiCond_Always, ImPlotAxisFlags_Time)) {
+                    if (ImPlot::BeginPlot(sensor_id.c_str(), NULL, NULL, ImVec2(-1, -1), ImGuiCond_::ImGuiCond_Always, ImPlotAxisFlags_Time)) {
 
-                        if (fbg.size() > 10000)
+                        if (fbg.size() > downsample_points)
                         {
                             using namespace udaq::common;
                             auto start_index = vector::upper_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Min);
                             auto end_index = vector::lower_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Max);
 
                             int seperation = end_index - start_index;
-                            if (seperation < 1000)
-                                ImPlot::PlotLine(legend.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], seperation);
+                            if (seperation < downsample_points)
+                                ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], seperation);
                             else
                             {
-                                int stride_length = ceil(seperation / 1000.0);
+                                int stride_length = ceil(seperation / (double)downsample_points);
                                 int count = floor(seperation / (double)stride_length);
-                                ImPlot::PlotLine(legend.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], count, 0, sizeof(double)*stride_length);
+                                ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], count, 0, sizeof(double)*stride_length);
                             }
                         }
                         else
                         {
-                            ImPlot::PlotLine(legend.c_str(), &fbg.time()[0], &fbg.wavelength()[0], (int)(fbg.size()));
+                            ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[0], &fbg.wavelength()[0], (int)(fbg.size()));
                         }
 
                         ImPlot::EndPlot();
