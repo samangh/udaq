@@ -61,19 +61,19 @@ void write_data(boost::asio::ip::tcp::socket& socket)
     int n = 20;
 
     /* i is sequenc number */
-     for (int i=0; ; ++i )
-       for (std::string sensor_id: {"sensor0", "sensor1", "sensor2", "sensor3"})
+    for (int i = 0; ; ++i)
+    {
+        std::this_thread::sleep_for(1us);
+        for (std::string sensor_id : {"sensor0", "sensor1", "sensor2", "sensor3", "sensor4", "sensor5", "sensor6"})
         {
-            std::this_thread::sleep_for(25us);
-
             std::string device_id = "simulated_device0";
-            auto device_id_padded =  device_id.append(std::string((32 - strlen(device_id.c_str())), '\0')).c_str();
+            auto device_id_padded = device_id.append(std::string((32 - strlen(device_id.c_str())), '\0')).c_str();
 
             //std::string sensor_id = "simulated_sensor0";
             auto sensor_id_padded = sensor_id.append(std::string((32 - strlen(sensor_id.c_str())), '\0')).c_str();
 
             /* packet size */
-            int packet_size = 80+n*24+4;
+            int packet_size = 80 + n * 24 + 4;
 
             std::vector<unsigned char> saf_header;
             /* SYNC */
@@ -94,24 +94,24 @@ void write_data(boost::asio::ip::tcp::socket& socket)
             add_to_byte_array(saf_header, (uint32_t)packet_size);
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, 80));
 
-            for (int k=0; k < n; ++k)
+            for (int k = 0; k < n; ++k)
             {
                 auto t = std::chrono::system_clock::now().time_since_epoch();
                 auto seconds = std::chrono::duration_cast<std::chrono::seconds>(t).count();
                 auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
-                auto ms_safira = 1E3*(milliseconds - (seconds*1E3));
+                auto ms_safira = 1E3 * (milliseconds - (seconds * 1E3));
 
                 add_to_byte_array(saf_header, (uint64_t)seconds);
                 add_to_byte_array(saf_header, (uint64_t)ms_safira);
 
-                add_to_byte_array(saf_header, sin(milliseconds*1E-3*3.14/60) + 0.1*sin(milliseconds * 1E-3 * 3.14));
+                add_to_byte_array(saf_header, sin(milliseconds * 1E-3 * 3.14 / 60) + 0.1 * sin(milliseconds * 1E-3 * 3.14));
             }
 
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
 
             boost::asio::write(socket, boost::asio::buffer(saf_header));
         }
-
+    }
 }
 
 int main(int argc, char* argv[])
