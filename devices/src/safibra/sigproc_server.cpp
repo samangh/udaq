@@ -75,20 +75,16 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
             if (m_stream_buffer.size() - msg_pos < header.message_size)
                 break;
 
-            /* Get sensor from our map of sensors */
-            auto find = m_data_buffer.find(header.sensor_id);
-            if (find == m_data_buffer.end()) {
-                m_data_buffer.insert({header.sensor_id, SensorReadout()});
-                find = m_data_buffer.find(header.sensor_id);
-            }
-            SensorReadout &readout = find->second;
-
+            SensorReadout readout;            
+            readout.sensor_id = header.sensor_id;
+            readout.device_id = header.device_id;
             for (size_t i = 0; i < header.no_readouts; ++i) {
                 auto seconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i]);
                 auto milliseconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 8]);
                 readout.time.push_back(seconds + 1E-6 * milliseconds);
                 readout.readouts.push_back(to_double(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 2 * 8]));
             }
+            m_data_buffer.push_back(readout);
 
             msg_pos += header.message_size;
         }
@@ -102,12 +98,9 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
         m_on_data_available_cb(get_data_buffer());
 }
 
-std::map<std::string, SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {
+std::vector<SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {
     std::lock_guard lock(m_mutex);
 
-//    auto buffer = std::move(m_data_buffer);
-//    m_data_buffer = std::map<std::string, SensorReadout>();
-//    return buffer;
     return std::move(m_data_buffer);
 }
 
