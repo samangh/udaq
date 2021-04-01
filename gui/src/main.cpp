@@ -19,6 +19,7 @@
 
 #include <udaq/devices/safibra/sigproc_server.h>
 #include <udaq/common/vector.h>
+#include <udaq/common/file_writer.h>
 
 #include <math.h>
 
@@ -204,6 +205,16 @@ bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
 
 int main(int, char**)
 {
+    auto w = udaq::common::file_writer("C:\\Windows\\Test.txt",
+        [](const std::string& msg) {
+            auto s = msg;
+        },
+        []() {},
+            []() {});
+    w.start();
+    w.write("HELLO");
+ //   w.write("HELLO2");
+
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
 
