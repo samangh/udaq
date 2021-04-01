@@ -19,12 +19,12 @@ public:
     typedef std::function<void(void)> started_cb_t;
     typedef std::function<void(void)> stopped_cb_t;
 
-    file_writer(std::string _path,
-                error_cb_t on_error_cb,
-                 started_cb_t on_client_connected_cb,
-                 stopped_cb_t on_client_disconnected_cb);
+    file_writer();
     ~file_writer();
-    void start();
+    void start(std::string _path,
+                error_cb_t on_error_cb,
+                started_cb_t on_client_connected_cb,
+                stopped_cb_t on_client_disconnected_cb);
     void stop();
     bool is_running();
 
@@ -32,7 +32,7 @@ public:
     void write(const std::string& msg);
     void write_line(const std::string& msg);
 
-    const std::string path;
+    std::string path;
 private:
     static void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
     static void on_new_connection(uv_stream_t *stream, int status);
@@ -42,7 +42,7 @@ private:
     static void on_uv_open(uv_fs_t* req);
     static void on_uv_on_write(uv_fs_t* req);
     static void on_uv_on_file_close(uv_fs_t* req);
-    static void on_uv_idler_tick(uv_idle_t* handle);
+    static void on_uv_timer_tick(uv_timer_t* handle);
 
     std::unique_ptr<std::vector<char>> m_buffer_in;
     std::unique_ptr<std::vector<char>> m_buffer_out;
@@ -51,9 +51,10 @@ private:
     bool m_write_pending = false;;
 
     uv_loop_t m_loop;
-    uv_idle_t m_idler;
+    uv_timer_t m_timer;
     std::thread m_thread;
-    std::shared_mutex m_mutex;          /* Mutex for getting data*/
+
+    std::shared_mutex m_mutex;          /* Mutex for operations*/
 
     error_cb_t m_error_cb; /* Called in case of errors after connect(...) */
     started_cb_t m_started_cb;

@@ -161,8 +161,10 @@ public:
 
         vector::append(m_wavelength, in.readouts);
         vector::append(m_time, in.time);
-    }
 
+        for (int i = 0; i < in.time.size(); i++)        
+            writer.write_line(std::to_string(in.time[i]) + "," + std::to_string(in.readouts[i]));                
+    }
 
     const std::vector<double>& time() const { return m_time; }
     const std::vector<double>& wavelength() const { return m_wavelength; }
@@ -182,6 +184,7 @@ public:
         m_time_minmax = AxisMinMax();
         m_wavelength_minmax = AxisMinMax();
     }
+    udaq::common::file_writer writer;
 private:
     std::vector<double> m_time;
     std::vector<double> m_wavelength;
@@ -189,11 +192,16 @@ private:
     AxisMinMax m_wavelength_minmax;
 };
 
-void add_fbg_data(std::map<std::string, std::map<std::string, FBGData>>& data,
-    const std::vector<udaq::devices::safibra::SensorReadout> &data_in) {
+void add_fbg_data(const std::string folder, std::map<std::string, std::map<std::string, FBGData>>& data,
+    const std::vector<udaq::devices::safibra::SensorReadout> &data_in, udaq::common::file_writer::error_cb_t error_c) {
     using namespace udaq::common;
-    for (const auto& fbg : data_in)
-        data[fbg.device_id][fbg.sensor_id].add(fbg);
+    for (const auto& fbg_data_in : data_in)
+    {
+        auto& fbg = data[fbg_data_in.device_id][fbg_data_in.sensor_id];
+        fbg.add(fbg_data_in);
+        if (!fbg.writer.is_running())
+            fbg.writer.start(folder + "\\"+ fbg_data_in.sensor_id, error_c, []() {}, []() {});
+    }
     
 }
 
@@ -202,18 +210,20 @@ bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
     return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
 }
 
-
 int main(int, char**)
 {
-    auto w = udaq::common::file_writer("C:\\Windows\\Test.txt",
+    std::vector<udaq::common::file_writer> writers;
+
+    auto w = udaq::common::file_writer();
+    w.start("C:\\Saman\\Test.txt",
         [](const std::string& msg) {
             auto s = msg;
         },
         []() {},
             []() {});
-    w.start();
-    w.write("HELLO");
- //   w.write("HELLO2");
+    w.write_line("HELLO");
+    w.write("HELLO2");
+
 
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
@@ -244,16 +254,23 @@ int main(int, char**)
         client_connected = false;
     };
 
+    auto on_file_error = [&](const std::string message) {
+        error_received = true;
+        error_message = message;
+    };
+
     auto on_data_available =
         [&](std::vector<udaq::devices::safibra::SensorReadout> data_in) {
             std::unique_lock lock(mutex_);
-            add_fbg_data(data, data_in);
+            add_fbg_data("C:\\Saman", data, data_in, on_file_error);
     };
 
     auto on_error = [&](const std::string message) {
         error_received = true;
         error_message = message;
     };
+
+
 
     //std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
     auto client = udaq::devices::safibra::SigprogServer(
