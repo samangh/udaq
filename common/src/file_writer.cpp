@@ -1,6 +1,7 @@
 #include <udaq/common/file_writer.h>
 #include <uv.h>
 #include <functional>
+#include <stdexcept>
 
 namespace udaq::common {
 
@@ -51,13 +52,25 @@ void file_writer::on_uv_idler_tick(uv_idle_t* handle) {
     }
 }
 
-void file_writer::write(const std::string& msg) {
+void file_writer::write(const char * data, size_t length)
+{
     std::lock_guard lock(m_mutex);
-    m_buffer_in.get()->insert(m_buffer_in.get()->end(), msg.begin(), msg.end());
+    m_buffer_in.get()->insert(m_buffer_in.get()->end(), data, data + length);
+}
+
+void file_writer::write(const std::string& msg) {
+    write(msg.c_str(), msg.size());
+}
+
+void file_writer::write_line(const std::string& msg) {
+    write(msg + "\n");
 }
 
 void file_writer::start()
 {
+    if (is_running())
+        throw new std::logic_error("this file writer is currently running");
+
     /* setup UV loop */
     uv_loop_init(&m_loop);
     m_loop.data = this;
@@ -65,7 +78,7 @@ void file_writer::start()
     int err=0;
     err = uv_fs_open(&m_loop, &open_req, path.c_str(), UV_FS_O_TRUNC | UV_FS_O_CREAT | UV_FS_O_WRONLY, _S_IREAD | _S_IWRITE, on_uv_open);
 
-    /* The idler is only started after the first is opened, by on_uv_open*/
+    /* The idler is only started after the file is opened, by on_uv_open*/
     uv_idle_init(&m_loop, &m_idler);
 
     m_thread = std::thread([&](){
@@ -131,9 +144,10 @@ void file_writer::on_uv_open(uv_fs_t *req)
     auto a = (file_writer*)req->loop->data;
 
     if (res < 0) {
-        a->on_error(uv_strerror(res));        
+        a->on_error(uv_strerror(res));
         return;
     }
+
     uv_idle_start(&a->m_idler, &on_uv_idler_tick);
 }
 
@@ -144,10 +158,8 @@ void file_writer::on_uv_on_write(uv_fs_t *req)
 
     auto a = (file_writer*)req->loop->data;
     a->m_write_pending = false;
-    if (res < 0) {
+    if (res < 0)
         a->on_error(uv_strerror(res));
-        return;
-    }
 }
 
 void file_writer::on_uv_on_file_close(uv_fs_t *req)
@@ -156,10 +168,8 @@ void file_writer::on_uv_on_file_close(uv_fs_t *req)
     uv_fs_req_cleanup(req);
 
     auto a = (file_writer*)req->loop->data;
-    if (res < 0) {
+    if (res < 0)
         a->on_error(uv_strerror(res));
-        return;
-    }    
 }
 
 }

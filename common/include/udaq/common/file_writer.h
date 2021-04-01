@@ -27,7 +27,11 @@ public:
     void start();
     void stop();
     bool is_running();
+
+    void write(const char* data, size_t length);
     void write(const std::string& msg);
+    void write_line(const std::string& msg);
+
     const std::string path;
 private:
     static void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
