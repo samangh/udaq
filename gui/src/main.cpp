@@ -4,6 +4,7 @@
 
 #include <imgui-wrapper.h>
 #include <imgui_internal.h>
+#include <imfilebrowser.h>
 
 #include <implot.h>
 #include <cstdlib>
@@ -214,7 +215,7 @@ bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
 int main(int, char**)
 {
     std::vector<udaq::common::file_writer> writers;
-
+    std::string path;
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
 
@@ -252,7 +253,7 @@ int main(int, char**)
     auto on_data_available =
         [&](std::vector<udaq::devices::safibra::SensorReadout> data_in) {
             std::unique_lock lock(mutex_);
-            add_fbg_data("C:\\Saman", data, data_in, on_file_error);
+            add_fbg_data(path, data, data_in, on_file_error);
     };
 
     auto on_error = [&](const std::string message) {

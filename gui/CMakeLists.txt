@@ -36,6 +36,7 @@ target_link_libraries(${TARGET}
     uv
     common
     fmt::fmt-header-only
+    imgui-filebrowser
   )
 
 ##
