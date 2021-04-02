@@ -16,7 +16,7 @@ void append(std::vector<T>& base, const std::vector<T> to_add)
 template <template <typename, typename> class Container,
     typename Value,
     typename Allocator = std::allocator<Value>>
-int upper_bound_index(const Container<Value, Allocator>& data, const Value& to_find)
+size_t upper_bound_index(const Container<Value, Allocator>& data, const Value& to_find)
 {
     auto upper = std::upper_bound(data.begin(), data.end(), to_find);
     if (upper == data.end())
@@ -27,10 +27,9 @@ int upper_bound_index(const Container<Value, Allocator>& data, const Value& to_f
 
 template <template <typename, typename> class Container,
     typename Value,
-    typename Allocator = std::allocator<Value>>int
- lower_bound_index(const Container<Value, Allocator>& data, const Value& to_find)
+    typename Allocator = std::allocator<Value>>
+size_t lower_bound_index(const Container<Value, Allocator>& data, const Value& to_find)
 {
-    auto a = data.begin();
     auto upper = std::lower_bound(data.begin(), data.end(), to_find);
     if (upper == data.end())
         return data.size() - 1;
