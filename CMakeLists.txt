@@ -85,6 +85,7 @@ endif()
 add_subdirectory(external_cmake_wrappers/implot)
 add_subdirectory(external_cmake_wrappers/imgui)
 add_subdirectory(external_cmake_wrappers/wise_enum)
+add_subdirectory(external_cmake_wrappers/imgui-filebrowser)
 
 add_subdirectory(common)
 add_subdirectory(devices)
