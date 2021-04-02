@@ -35,6 +35,7 @@ target_link_libraries(${TARGET}
     devices
     uv
     common
+    fmt::fmt-header-only
   )
 
 ##

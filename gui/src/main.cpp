@@ -21,7 +21,8 @@
 #include <udaq/common/vector.h>
 #include <udaq/common/file_writer.h>
 
-#include <math.h>
+#include <cmath>
+#include <fmt/format.h>
 
 class MyContext {
   public:
@@ -162,8 +163,8 @@ public:
         vector::append(m_wavelength, in.readouts);
         vector::append(m_time, in.time);
 
-        for (int i = 0; i < in.time.size(); i++)        
-            writer.write_line(std::to_string(in.time[i]) + "," + std::to_string(in.readouts[i]));                
+        for (int i = 0; i < in.time.size(); i++)
+            writer.write(fmt::format("{},{}\n", in.time[i], in.readouts[i]));
     }
 
     const std::vector<double>& time() const { return m_time; }
@@ -213,17 +214,6 @@ bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
 int main(int, char**)
 {
     std::vector<udaq::common::file_writer> writers;
-
-    auto w = udaq::common::file_writer();
-    w.start("C:\\Saman\\Test.txt",
-        [](const std::string& msg) {
-            auto s = msg;
-        },
-        []() {},
-            []() {});
-    w.write_line("HELLO");
-    w.write("HELLO2");
-
 
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
@@ -393,12 +383,12 @@ int main(int, char**)
                             auto start_index = vector::upper_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Min);
                             auto end_index = vector::lower_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Max);
 
-                            int seperation = end_index - start_index;
+                            auto seperation = end_index - start_index;
                             if (seperation < downsample_points)
                                 ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], seperation);
                             else
                             {
-                                int stride_length = ceil(seperation / (double)downsample_points);
+                                int stride_length = (int)ceil(seperation / (double)downsample_points);
                                 int count = floor(seperation / (double)stride_length);
                                 ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], count, 0, sizeof(double)*stride_length);
                             }
