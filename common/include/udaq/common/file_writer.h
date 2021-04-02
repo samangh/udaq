@@ -24,7 +24,8 @@ public:
     void start(std::string _path,
                 error_cb_t on_error_cb,
                 started_cb_t on_client_connected_cb,
-                stopped_cb_t on_client_disconnected_cb);
+                stopped_cb_t on_client_disconnected_cb,
+                unsigned int write_interval = 1000);
     void stop();
     bool is_running();
 
@@ -32,26 +33,30 @@ public:
     void write(const std::string& msg);
     void write_line(const std::string& msg);
 
-    std::string path;
+    std::string path();
 private:
     void on_error(const std::string &message);
 
     static void on_uv_open(uv_fs_t* req);
     static void on_uv_on_write(uv_fs_t* req);
     static void on_uv_on_file_close(uv_fs_t* req);
-    static void on_uv_timer_tick(uv_timer_t* handle);
+    static void on_uv_timer_tick(uv_idle_t * handle);
 
     std::unique_ptr<std::vector<char>> m_buffer_in;
     std::unique_ptr<std::vector<char>> m_buffer_out;
         
     bool m_stop_requested = false;
     bool m_write_pending = false;;
+    
+    uint64_t m_last_write_time;
+    unsigned int buffer_write_interval;
 
     uv_loop_t m_loop;
-    uv_timer_t m_timer;
+    uv_idle_t m_idler;
     std::thread m_thread;
 
     std::shared_mutex m_mutex;          /* Mutex for operations*/
+    std::shared_mutex m_stop_mutex;
 
     error_cb_t m_error_cb;
     started_cb_t m_started_cb;
