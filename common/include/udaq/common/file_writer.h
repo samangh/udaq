@@ -34,9 +34,6 @@ public:
 
     std::string path;
 private:
-    static void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
-    static void on_new_connection(uv_stream_t *stream, int status);
-
     void on_error(const std::string &message);
 
     static void on_uv_open(uv_fs_t* req);
@@ -56,7 +53,7 @@ private:
 
     std::shared_mutex m_mutex;          /* Mutex for operations*/
 
-    error_cb_t m_error_cb; /* Called in case of errors after connect(...) */
+    error_cb_t m_error_cb;
     started_cb_t m_started_cb;
     stopped_cb_t m_stopped_cb;
 
