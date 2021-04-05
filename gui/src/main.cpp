@@ -212,10 +212,33 @@ bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
     return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
 }
 
+static int InputTextCallback(ImGuiInputTextCallbackData* data)
+{
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+    {
+        // Resize string callback
+        std::string* str = (std::string*)data->UserData;
+        IM_ASSERT(data->Buf == str->c_str());
+        str->resize(data->BufTextLen);
+        data->Buf = (char*)str->c_str();
+    }
+}
+
+bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags=0)
+{
+    flags |= ImGuiInputTextFlags_CallbackResize;
+    return ImGui::InputText(label, (char*)str.c_str(), str.capacity() + 1, flags, InputTextCallback, (void*)&str);
+}
+
 int main(int, char**)
 {
+    const int FILE_PATH_SIZE=2048;
     std::vector<udaq::common::file_writer> writers;
-    std::string path;
+
+    //auto path = std::make_unique<char[]>(FILE_PATH_SIZE);
+     //std::filesystem::current_path;
+    std::string path = "";
+
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
 
@@ -245,6 +268,12 @@ int main(int, char**)
         client_connected = false;
     };
 
+
+    auto on_error = [&](const std::string message) {
+        error_received = true;
+        error_message = message;
+    };
+
     auto on_file_error = [&](const std::string message) {
         error_received = true;
         error_message = message;
@@ -256,17 +285,14 @@ int main(int, char**)
             add_fbg_data(path, data, data_in, on_file_error);
     };
 
-    auto on_error = [&](const std::string message) {
-        error_received = true;
-        error_message = message;
-    };
-
 
 
     //std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
     auto client = udaq::devices::safibra::SigprogServer(
         on_error, on_client_connected, on_client_disconnected,
         on_server_started, on_server_stopped, on_data_available);
+
+    ImGui::FileBrowser fileDialog(ImGuiFileBrowserFlags_SelectDirectory|ImGuiFileBrowserFlags_CreateNewDir|ImGuiFileBrowserFlags_CloseOnEsc);
 
     while (!done)
     {
@@ -299,7 +325,6 @@ int main(int, char**)
 
             ImGui::EndMainMenuBar();
         }
-
 
         ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
         {
@@ -338,7 +363,16 @@ int main(int, char**)
                         if (ImGui::TreeNode(device.c_str()))
                         {
                             for (auto& [sensor, fbg] : sensors)
-                                ImGui::Checkbox(sensor.c_str(), &fbg.showPlot);
+                            {
+                                ///ImGui::Checkbox(fmt::format("Plot {}", sensor).c_str(), &fbg.showPlot);
+                                ImGui::Text(fmt::format("{}:", sensor).c_str());
+                                ImGui::SameLine();
+                                ImGui::RadioButton("Recording", fbg.writer.is_running());
+                                ImGui::SameLine();
+                                if (ImGui::Button(fmt::format("Show plot...##{}", sensor).c_str()))
+                                    fbg.showPlot=true;
+                            }
+
                             ImGui::TreePop();
                         }
 
@@ -354,6 +388,27 @@ int main(int, char**)
         }
         ImGui::End();
 
+        ImGui::Begin("File Save",NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        InputText("Save Directory", path, 0);
+        if (ImGui::Button("Browse ..."))
+        {
+            //fileDialog.SetTitle("title");
+            //fileDialog.SetTypeFilters({ ".h", ".cpp" });
+            fileDialog.SetPwd(path);
+            fileDialog.Open();
+        }
+        ImGui::End();
+        fileDialog.Display();
+
+        if(fileDialog.HasSelected())
+        {
+            path=fileDialog.GetSelected();
+            //if (paths.string().size() < FILE_PATH_SIZE)
+            //    memcpy(path.get(), paths.c_str(), paths.string().size());
+            fileDialog.ClearSelected();
+        }
+
+
         if (data.size() >0){
             std::shared_lock lock(mutex_);
 
@@ -364,7 +419,7 @@ int main(int, char**)
                 {
 
                     ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
-                    ImGui::Begin(sensor_id.c_str());
+                    ImGui::Begin(sensor_id.c_str(), &fbg.showPlot);
 
                     ImGui::Checkbox("Autoscale", &fbg.autoScale);
                     if (fbg.size() > 100)
@@ -418,8 +473,13 @@ int main(int, char**)
                 ImGui::Text("Error: %s", error_message.c_str());
                 if (ImGui::Button("OK")) {
                     client.stop();
+                    for (auto& [device, sensors] : data)
+                        for (auto& [sensor_id, fbg] : sensors)
+                        {
+                            if (fbg.writer.is_running())
+                                fbg.writer.stop();
+                        }
                     error_received = false;
-
                 }
                 ImGui::EndPopup();
             }
