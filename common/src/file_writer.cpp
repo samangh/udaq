@@ -66,7 +66,7 @@ void file_writer::write_line(const std::string& msg) {
     write(msg + "\n");
 }
 
-void file_writer::start(std::string path, file_writer::error_cb_t on_error_cb,
+void file_writer::start(std::filesystem::path path, file_writer::error_cb_t on_error_cb,
     file_writer::started_cb_t on_client_connected_cb,
     file_writer::stopped_cb_t on_client_disconnected_cb,
     unsigned int write_interval)
@@ -124,7 +124,7 @@ file_writer::~file_writer() {
 }
 
 
-std::string file_writer::path()
+std::filesystem::path file_writer::path()
 {
     return open_req.path;
 }

@@ -10,6 +10,7 @@
 #include <thread>
 #include <functional>
 #include <memory>
+#include <filesystem>
 
 namespace udaq::common {
 
@@ -21,7 +22,7 @@ public:
 
     file_writer();
     ~file_writer();
-    void start(std::string _path,
+    void start(std::filesystem::path _path,
                 error_cb_t on_error_cb,
                 started_cb_t on_client_connected_cb,
                 stopped_cb_t on_client_disconnected_cb,
@@ -33,7 +34,7 @@ public:
     void write(const std::string& msg);
     void write_line(const std::string& msg);
 
-    std::string path();
+    std::filesystem::path path();
 private:
     void on_error(const std::string &message);
 
