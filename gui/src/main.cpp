@@ -21,6 +21,7 @@
 #include <udaq/devices/safibra/sigproc_server.h>
 #include <udaq/common/vector.h>
 #include <udaq/common/file_writer.h>
+#include <udaq/helpers/imgui.h>
 
 #include <cmath>
 #include <fmt/format.h>
@@ -164,7 +165,7 @@ public:
         vector::append(m_wavelength, in.readouts);
         vector::append(m_time, in.time);
 
-        for (int i = 0; i < in.time.size(); i++)
+        for (size_t i = 0; i < in.time.size(); i++)
             writer.write(fmt::format("{},{}\n", in.time[i], in.readouts[i]));
     }
 
@@ -207,36 +208,11 @@ void add_fbg_data(const std::string folder, std::map<std::string, std::map<std::
     
 }
 
-bool InputUInt32(const char* label, uint32_t* v, ImGuiInputTextFlags flags =0)
-{
-    return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
-}
-
-static int InputTextCallback(ImGuiInputTextCallbackData* data)
-{
-    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
-    {
-        // Resize string callback
-        std::string* str = (std::string*)data->UserData;
-        IM_ASSERT(data->Buf == str->c_str());
-        str->resize(data->BufTextLen);
-        data->Buf = (char*)str->c_str();
-    }
-}
-
-bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags=0)
-{
-    flags |= ImGuiInputTextFlags_CallbackResize;
-    return ImGui::InputText(label, (char*)str.c_str(), str.capacity() + 1, flags, InputTextCallback, (void*)&str);
-}
 
 int main(int, char**)
 {
-    const int FILE_PATH_SIZE=2048;
     std::vector<udaq::common::file_writer> writers;
 
-    //auto path = std::make_unique<char[]>(FILE_PATH_SIZE);
-     //std::filesystem::current_path;
     std::string path = "";
 
     auto imgui_context=initialise();
@@ -357,6 +333,7 @@ int main(int, char**)
                 std::shared_lock lock(mutex_);
                 if (data.size() > 0)
                 {
+                   bool is_client_running = client.is_running();
                     ImGui::Separator();
                     ImGui::Text("Interrogators:");
                     for (auto& [device, sensors] : data)
@@ -367,7 +344,7 @@ int main(int, char**)
                                 ///ImGui::Checkbox(fmt::format("Plot {}", sensor).c_str(), &fbg.showPlot);
                                 ImGui::Text(fmt::format("{}:", sensor).c_str());
                                 ImGui::SameLine();
-                                ImGui::RadioButton("Recording", fbg.writer.is_running());
+                                ImGui::RadioButton("Recording",  is_client_running && fbg.writer.is_running());
                                 ImGui::SameLine();
                                 if (ImGui::Button(fmt::format("Show plot...##{}", sensor).c_str()))
                                     fbg.showPlot=true;
@@ -389,7 +366,7 @@ int main(int, char**)
         ImGui::End();
 
         ImGui::Begin("File Save",NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        InputText("Save Directory", path, 0);
+        udaq::helpers::imgui::InputText("Save Directory", path, 0);
         if (ImGui::Button("Browse ..."))
         {
             //fileDialog.SetTitle("title");

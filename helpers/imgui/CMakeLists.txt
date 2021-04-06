@@ -1,4 +1,4 @@
-set(TARGET gui)
+set(TARGET "imgui-helper")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
 ##
@@ -10,7 +10,7 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-add_executable(${TARGET} ${SRC_FILES})
+add_library(${TARGET} STATIC ${SRC_FILES})
 
 ##
 ## Includes
@@ -22,22 +22,13 @@ target_include_directories(${TARGET}
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/
-    ${CMAKE_CURRENT_LIST_DIR}/src
-    )
+  )
 
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
-    imgui
-    implot
-    devices
-    uv
-    common
-    fmt::fmt-header-only
-    imgui-filebrowser
-    imgui-helper
+  imgui
   )
 
 ##
