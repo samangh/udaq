@@ -1,14 +1,5 @@
 cmake_minimum_required(VERSION 3.13.4)
 
-# This will allow using MSVC statically
-# Requires cmake 3.15.0 and above
-if (MSVC)
-  cmake_minimum_required(VERSION 3.15.0)
-
-  # The policy must be set before project()
-  cmake_policy(SET CMP0091 NEW)
-endif()
-
 project(udaq
   VERSION "0.0.1"
   DESCRIPTION "Cross-pltform Data Acquisition Sequencer"
@@ -123,7 +114,10 @@ foreach(t ${TARGETS})
 
   # Link against MSVC statically if enabled
   if (USE_STATIC_RUNTIME AND MSVC)
-    set_property(TARGET ${t} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    # The MSVC_RUNTIME_LIBRARY option does work properly (even when the
+    # CMP0091 option is set), so let's do this manually
+    set_property(TARGET ${t} PROPERTY MSVC_RUNTIME_LIBRARY "")
+    target_compile_options(${t} PRIVATE "/MT$<$<CONFIG:Debug>:d>")
   endif()
 endforeach()
 
