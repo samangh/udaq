@@ -64,7 +64,7 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 if (USE_STATIC_RUNTIME)
-#  set(Boost_USE_STATIC_RUNTIME ON)
+  set(Boost_USE_STATIC_RUNTIME ON)
 endif()
 
 # Configure Boost in Windows
