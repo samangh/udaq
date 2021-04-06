@@ -84,7 +84,7 @@ void file_writer::start(std::filesystem::path path, file_writer::error_cb_t on_e
     m_loop.data = this;
 
     int err=0;
-    err = uv_fs_open(&m_loop, &open_req, path.c_str(), UV_FS_O_TRUNC | UV_FS_O_CREAT | UV_FS_O_WRONLY | UV_FS_O_SEQUENTIAL | UV_FS_O_EXLOCK, 0644, on_uv_open);
+    err = uv_fs_open(&m_loop, &open_req, path.string().c_str(), UV_FS_O_TRUNC | UV_FS_O_CREAT | UV_FS_O_WRONLY | UV_FS_O_SEQUENTIAL | UV_FS_O_EXLOCK, 0644, on_uv_open);
 
     /* Set the last time the file buffer was checked to 0.
      * Note: the idler is started by the on_uv_open cb 
