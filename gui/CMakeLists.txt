@@ -33,7 +33,6 @@ target_link_libraries(${TARGET}
     imgui
     implot
     devices
-    uv
     common
     fmt::fmt-header-only
     imgui-filebrowser

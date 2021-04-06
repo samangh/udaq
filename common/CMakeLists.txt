@@ -28,7 +28,7 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
-  uv
+  ${uv_selected}
   )
 
 ##

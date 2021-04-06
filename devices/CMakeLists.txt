@@ -30,10 +30,9 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
-    uv
+    ${uv_selected}
     udaq
     wise_enum
-    wampcc_selected
     common)
 
 ##

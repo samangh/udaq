@@ -42,13 +42,17 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Threads REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(VISA REQUIRED)
-find_package(wampcc REQUIRED)
 
-if (BUILD_SHARED_LIBS)
-  add_library(wampcc_selected ALIAS wampcc::wampcc_shared)
-else()
-  add_library(wampcc_selected ALIAS wampcc::wampcc_static)
-endif()
+find_package(unofficial-libuv CONFIG REQUIRED)
+set(uv_selected unofficial::libuv::libuv)
+
+# find_package(wampcc REQUIRED)
+
+# if (BUILD_SHARED_LIBS)
+#   add_library(wampcc_selected ALIAS wampcc::wampcc_shared)
+# else()
+#   add_library(wampcc_selected ALIAS wampcc::wampcc_static)
+# endif()
 
 # Use boost statially if making a static library
 if(NOT BUILD_SHARED_LIBS)
