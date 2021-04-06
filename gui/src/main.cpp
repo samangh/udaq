@@ -213,7 +213,7 @@ int main(int, char**)
 {
     std::vector<udaq::common::file_writer> writers;
 
-    std::string path = "";
+    std::string path = std::filesystem::current_path().string();
 
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
@@ -304,11 +304,18 @@ int main(int, char**)
 
         ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
         {
+            udaq::helpers::imgui::InputText("Save Directory", path, 0);
+            if (ImGui::Button("Browse ..."))
+            {
+                //fileDialog.SetTitle("title");
+                //fileDialog.SetTypeFilters({ ".h", ".cpp" });
+                fileDialog.SetPwd(path);
+                fileDialog.Open();
+            }
+            ImGui::Separator();
+
             disable_item(client.is_running(), [&]() {
-                ImGui::Text("Port:"); ImGui::SameLine();
-                ImGui::PushItemWidth(100);
-                ImGui::InputInt("##Port", &port);
-                ImGui::PopItemWidth();
+                ImGui::InputInt("Port", &port);
             });
 
             disable_item(client.is_running(), [&](){
@@ -365,26 +372,12 @@ int main(int, char**)
         }
         ImGui::End();
 
-        ImGui::Begin("File Save",NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        udaq::helpers::imgui::InputText("Save Directory", path, 0);
-        if (ImGui::Button("Browse ..."))
-        {
-            //fileDialog.SetTitle("title");
-            //fileDialog.SetTypeFilters({ ".h", ".cpp" });
-            fileDialog.SetPwd(path);
-            fileDialog.Open();
-        }
-        ImGui::End();
         fileDialog.Display();
-
         if(fileDialog.HasSelected())
         {
-            path=fileDialog.GetSelected();
-            //if (paths.string().size() < FILE_PATH_SIZE)
-            //    memcpy(path.get(), paths.c_str(), paths.string().size());
+            path=fileDialog.GetSelected().string();
             fileDialog.ClearSelected();
         }
-
 
         if (data.size() >0){
             std::shared_lock lock(mutex_);
