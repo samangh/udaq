@@ -30,10 +30,10 @@ std::vector<uint8_t> to_bytes(T input, udaq::common::bytes::Endianess endian,
    std::vector<uint8_t> result(no_bytes);
    if (endian == udaq::common::bytes::Endianess::BigEndian)
        for (unsigned int i = 0; i < no_bytes; i++)
-           result[no_bytes-1-i] = input >> (i*8);
+           result[no_bytes-1-i] = (uint8_t)(input >> (i*8));
    else
        for (unsigned int i = 0; i < no_bytes; i++)
-           result[i] = input >> (i * 8);
+           result[i] = (uint8_t)(input >> (i * 8));
 
    return result;
 }

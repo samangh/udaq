@@ -13,20 +13,19 @@
 
 #include "tcp_client.h"
 
-
-/* Call back for freeing handles after they are closed */
-void free_handle_on_close(uv_handle_t *handle) {
-    if (handle != nullptr)
-        delete handle;
-}
-
-void close_handle(uv_handle_s* handle, void* args)
-{
-    uv_close(handle, nullptr);
-}
-
-
 namespace udaq::devices::safibra {
+
+    /* Call back for freeing handles after they are closed */
+    void free_handle_on_close(uv_handle_t* handle) {
+        if (handle != nullptr)
+            delete handle;
+    }
+
+    void close_handle(uv_handle_s* handle, void*)
+    {
+        uv_close(handle, nullptr);
+    }
+
 
 safibra_tcp_client::safibra_tcp_client(
     on_error_cb_t on_error_cb, on_client_connected_cb_t on_client_connected_cb,
@@ -126,7 +125,7 @@ safibra_tcp_client::~safibra_tcp_client()
 }
 
 void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
-{   
+{
     /* Take ownership of the buffer, as it is now ours. */
     auto _buffer = std::unique_ptr<char>(buf->base);
 
@@ -134,9 +133,9 @@ void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_bu
 
     /* Check for disconnection*/
     if(nread < 0) {
-        uv_close((uv_handle_t *)client, free_handle_on_close);       
+        uv_close((uv_handle_t *)client, free_handle_on_close);
         if (nread != UV_EOF)
-            a->on_error(uv_strerror(nread));                 
+            a->on_error(uv_strerror((int)nread));
         else
             a->m_on_client_disconnected_cb();
         return;
@@ -150,7 +149,7 @@ void safibra_tcp_client::on_new_connection(uv_stream_t *server, int status) {
     auto a = (safibra_tcp_client *)(server->loop->data);
 
     if (status < 0) {
-        a->on_error(uv_strerror(status));
+        a->on_error(uv_strerror((int)status));
         return;
     }
 
@@ -162,15 +161,15 @@ void safibra_tcp_client::on_new_connection(uv_stream_t *server, int status) {
         a->m_on_client_connected_cb();
     } else {
         /* for some reason we could not accept a connection */
-        uv_close((uv_handle_t *)client, free_handle_on_close);        
+        uv_close((uv_handle_t *)client, free_handle_on_close);
         a->on_error(uv_strerror(status));
         return;
     }
 }
 
-void safibra_tcp_client::alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+void safibra_tcp_client::alloc_cb(uv_handle_t *, size_t size, uv_buf_t *buf) {
     /* Generate buffer for the handle */
-    *buf = uv_buf_init((char*)malloc(size), size);
+    *buf = uv_buf_init((char*)malloc(size), (unsigned int)size);
 }
 
 void safibra_tcp_client::on_error(const std::string& message)
