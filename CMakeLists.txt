@@ -88,6 +88,8 @@ add_subdirectory(helpers/imgui)
 add_subdirectory(common)
 add_subdirectory(devices)
 
+add_subdirectory(devices-wrapper)
+
 add_subdirectory(udaq)
 add_subdirectory(gui)
 
@@ -96,6 +98,7 @@ if(BUILD_TESTS)
   add_subdirectory(tools/safibra-simulator)
   add_subdirectory(tests/find-resource)
   add_subdirectory(tests/idn)
+  add_subdirectory(tests/device-wrapper)
   add_subdirectory(test)
 endif()
 
