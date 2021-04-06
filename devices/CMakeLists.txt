@@ -29,11 +29,12 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-  PRIVATE
-    ${uv_selected}
-    udaq
+    uv
     wise_enum
-    common)
+    common
+  PRIVATE
+    udaq
+)
 
 ##
 ## Compiler flags

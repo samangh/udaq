@@ -15,6 +15,12 @@ set(NAMESPACE udaq)
 option (BUILD_SHARED_LIBS "Build shared libraries" ON)
 option (BUILD_TESTS "Build tests and related tools" OFF)
 
+if (NOT BUILD_SHARED_LIBS)
+  set(USE_STATIC_LIBS_DEFAULT ON)
+endif()
+
+option (USE_STATIC_LIBS "Use external static libs if possible" ${USE_STATIC_LIBS_DEFAULT})
+
 if(MSVC)
   # Note: will require SDL2 to be compiled with FORCE_STATIC_VCRT=ON
   # We only use this on MSVC
@@ -27,7 +33,6 @@ endif()
 
 # Export compile database for IDEs, needed for QtCreator
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 
 ##
 ## CMake module paths
@@ -42,9 +47,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Threads REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(VISA REQUIRED)
-
-find_package(unofficial-libuv CONFIG REQUIRED)
-set(uv_selected unofficial::libuv::libuv)
 
 # find_package(wampcc REQUIRED)
 
@@ -77,6 +79,8 @@ endif()
 ##
 ## Targets/Sources
 ##
+
+add_subdirectory(external_cmake_wrappers/uv)
 
 add_subdirectory(external_cmake_wrappers/implot)
 add_subdirectory(external_cmake_wrappers/imgui)

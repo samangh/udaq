@@ -27,8 +27,8 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
+    uv
   PRIVATE
-  ${uv_selected}
   )
 
 ##
