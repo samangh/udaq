@@ -208,6 +208,9 @@ void add_fbg_data(const std::string folder, std::map<std::string, std::map<std::
     
 }
 
+#ifdef WIN32
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
 
 int main(int, char**)
 {
