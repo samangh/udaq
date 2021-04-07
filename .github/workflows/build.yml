@@ -29,8 +29,9 @@ jobs:
       - name: Install dependencies
         run: |
              sudo apt update
-             sudo apt install libboost-dev libboost-thread-dev \
-                              libsdl2-dev libvisa-dev
+             sudo apt install ${{ matrix.config.cxx }}-${{ matrix.config.ver }} \
+                              libboost-dev libboost-thread-dev \
+                              libsdl2-dev libvisa-dev libuv1-dev liblibfmt-dev
   
       - name: Run CMake
         working-directory: ${{github.workspace}}
