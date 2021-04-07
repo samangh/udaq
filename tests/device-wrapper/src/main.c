@@ -17,19 +17,19 @@ void on_error(const char* msg) {
     printf("error: %s\n", msg);
 };
 
-void on_data(safibra_packet_buffer* buffer)
+void on_data(safibra_packet_buffer buffer)
 {
-    for (int i = 0; i < buffer->length; i++)
+    for (int i = 0; i < buffer.length; i++)
     {
-        printf("device_id: %s\n", buffer->packets[i].device_id);
-        printf("  sensor_id: %s\n", buffer->packets[i].sensor_id);
-        for (int k=0; k < buffer->packets[i].length; k++)
+        printf("device_id: %s\n", buffer.packets[i].device_id);
+        printf("  sensor_id: %s\n", buffer.packets[i].sensor_id);
+        for (int k=0; k < buffer.packets[i].length; k++)
         {
-            printf("    time: %f\n", buffer->packets[i].time[k]);
-            printf("    wavelength: %f\n", buffer->packets[i].readouts[k]);
+            printf("    time: %f\n", buffer.packets[i].time[k]);
+            printf("    wavelength: %f\n", buffer.packets[i].readouts[k]);
         }
     }
-    safibra_free(buffer);
+    safibra_free_buffer(buffer);
 };
 
 void empty()

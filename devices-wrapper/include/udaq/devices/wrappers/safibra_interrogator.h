@@ -30,8 +30,10 @@ typedef void (*safibra_connected_cb)(void);
 typedef void (*safibra_disconnected_cb)(void);
 typedef void (*safibra_started_listening_cb)(void);
 typedef void (*safibra_stopped_listening_cb)(void);
-typedef void (*safibra_data)(safibra_packet_buffer* buffer);
+/* Call back for when data becomes avilable. The caller is responsible for freeing the buffer by calling safibra_free_buffer() afterwards. */
+typedef void (*safibra_data)(safibra_packet_buffer buffer);
 
+/* Creates a new client for Safibra FBG interrogators. The resultign client must be freed by calling safibra_free_client() afterards. */
 DLL_PUBLIC safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
                                        safibra_connected_cb client_connected_cb,
                                        safibra_disconnected_cb client_disconnected_cb,
@@ -43,7 +45,7 @@ DLL_PUBLIC void safibra_start(safibra_client client, const int port);
 DLL_PUBLIC void safibra_stop(safibra_client client);
 DLL_PUBLIC bool safibra_is_running(safibra_client client);
 
-DLL_PUBLIC void safibra_free(safibra_packet_buffer* buffer);
+DLL_PUBLIC void safibra_free_buffer(safibra_packet_buffer buffer);
 DLL_PUBLIC void safibra_free_client(safibra_client client);
 
 EXTERN_C_END
