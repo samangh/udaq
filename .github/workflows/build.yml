@@ -12,13 +12,10 @@ jobs:
     strategy:
       matrix:
         config:
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 7 }
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 8 }
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9 }
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10 }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 8 }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9 }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10 }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9, package: g++-9 }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10, package: g++-10 }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9, package: clang-9 }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10 }
 
     steps:
       - name: Checkout repository
@@ -29,9 +26,9 @@ jobs:
       - name: Install dependencies
         run: |
              sudo apt update
-             sudo apt install ${{ matrix.config.cxx }}-${{ matrix.config.ver }} \
+             sudo apt install ${{ matrix.config.package }} \
                               libboost-dev libboost-thread-dev \
-                              libsdl2-dev libvisa-dev libuv1-dev liblibfmt-dev
+                              libsdl2-dev libvisa-dev libuv1-dev libfmt-dev
   
       - name: Run CMake
         working-directory: ${{github.workspace}}
