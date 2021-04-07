@@ -3,18 +3,18 @@
 #include <udaq/devices/safibra/sigproc_server.h>
 
 
-safibra_client safibra_create_client(safibra_error_cb_t* erro_cb,
-                            safibra_connected_cb* client_connected_cb,
-                            safibra_disconnected_cb* client_disconnected_cb,
-                            safibra_started_listening_cb* started_listening_cb,
-                            safibra_stopped_listening_cb* stopped_listening_cb,
-                            safibra_data* data_available_cb) {
+safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
+                            safibra_connected_cb client_connected_cb,
+                            safibra_disconnected_cb client_disconnected_cb,
+                            safibra_started_listening_cb started_listening_cb,
+                            safibra_stopped_listening_cb stopped_listening_cb,
+                            safibra_data data_available_cb) {
     safibra_client a;
-    a.client = 	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {(*erro_cb)(msg.c_str());},
-        *client_connected_cb,
-        *client_disconnected_cb,
-        *started_listening_cb,
-        *stopped_listening_cb,
+    a.client = 	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {erro_cb(msg.c_str());},
+        client_connected_cb,
+        client_disconnected_cb,
+        started_listening_cb,
+        stopped_listening_cb,
         [data_available_cb](std::vector<udaq::devices::safibra::SensorReadout> in) {
             auto buffer = new safibra_packet_buffer();
             buffer->length = in.size();
@@ -45,7 +45,7 @@ safibra_client safibra_create_client(safibra_error_cb_t* erro_cb,
                 buffer->packets[i].length = length;
 			}
 
-            (*data_available_cb)(buffer);
+            //data_available_cb(buffer);
 		}
 	);
 
