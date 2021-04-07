@@ -32,7 +32,7 @@ class SigprogServer {
     void start(const int port);
     void stop();
     bool is_running();
-
+    int number_of_clients();
   private:
     void on_data_available_cb_from_tcp(const uint8_t*, size_t length);
     
@@ -41,6 +41,7 @@ class SigprogServer {
     std::vector<unsigned char> m_stream_buffer;
     std::vector<SensorReadout> m_data_buffer;
     std::unique_ptr<safibra_tcp_client> m_client;
+
     mutable std::shared_mutex m_mutex;
 };
 

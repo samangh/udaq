@@ -36,6 +36,10 @@ void udaq::devices::safibra::SigprogServer::start(const int port) {
 
 void udaq::devices::safibra::SigprogServer::stop() { m_client->stop(); }
 
+int udaq::devices::safibra::SigprogServer::number_of_clients() {
+    return m_client->number_of_clients();
+}
+
 bool udaq::devices::safibra::SigprogServer::is_running() {
     return m_client->is_running();
 }
@@ -78,6 +82,7 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
             SensorReadout readout;            
             readout.sensor_id = header.sensor_id;
             readout.device_id = header.device_id;
+            readout.sequence_no = header.sequence_no;
             for (size_t i = 0; i < header.no_readouts; ++i) {
                 auto seconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i]);
                 auto milliseconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 8]);

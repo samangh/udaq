@@ -42,6 +42,8 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
                 buffer.packets[i].readouts = new double[length];
                 std::copy_n(&(in_readout.readouts)[0], length, buffer.packets[i].readouts);
 
+                buffer.packets[i].sequence_no = in_readout.sequence_no;
+
                 buffer.packets[i].length = length;
 			}
 
@@ -53,7 +55,7 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
 }
 
 
-void safibra_start(safibra_client client, const int port) {
+void safibra_start(safibra_client client, int port) {
 	auto a = (udaq::devices::safibra::SigprogServer*)client.client;
 	a->start(port);
 }
@@ -70,4 +72,15 @@ void safibra_free_buffer(safibra_packet_buffer buffer) {
 
 void safibra_free_client(safibra_client client){
     delete (udaq::devices::safibra::SigprogServer*)client.client;    
+}
+
+int safibra_number_of_clients(safibra_client client)
+{
+    auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    return a->number_of_clients();
+}
+
+bool safibra_is_running(safibra_client client) {
+    auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    return a->is_running();
 }

@@ -10,6 +10,7 @@ struct SensorReadout {
     std::string device_id;
     std::vector<double> time;
     std::vector<double> readouts;
+    uint16_t sequence_no;
 };
 
 }

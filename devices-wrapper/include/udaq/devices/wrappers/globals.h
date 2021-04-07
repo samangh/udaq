@@ -2,9 +2,11 @@
 
 #ifdef __cplusplus
   #include <cstddef>
+  #include <cstdint>
 #else
   #include <stdbool.h>
   #include <stddef.h>
+  #include <stdint.h>
 #endif
 
 // Note: winnt contains a defintion of EXTERN_C_START ad EXTERN_C_END

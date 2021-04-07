@@ -27,6 +27,7 @@ namespace udaq::devices::safibra {
     }
 
 
+
 safibra_tcp_client::safibra_tcp_client(
     on_error_cb_t on_error_cb, on_client_connected_cb_t on_client_connected_cb,
     on_client_disconnected_cb_t on_client_disconnected_cb,
@@ -34,7 +35,8 @@ safibra_tcp_client::safibra_tcp_client(
     : m_on_error_cb(on_error_cb),
       m_on_client_connected_cb(on_client_connected_cb),
       m_on_client_disconnected_cb(on_client_disconnected_cb),
-      m_on_start_cb(on_start), m_on_stop_cb(on_stop), m_on_data_available(on_data_available_cb) {
+      m_on_start_cb(on_start), m_on_stop_cb(on_stop), m_on_data_available(on_data_available_cb),
+      m_number_of_connected_clients(0){
 }
 
 void safibra_tcp_client::start(const int port) {
@@ -118,6 +120,12 @@ bool safibra_tcp_client::is_running()
     return m_thread.joinable()  && (uv_loop_alive(&m_loop) != 0);
 }
 
+int safibra_tcp_client::number_of_clients()
+{
+    std::shared_lock lock(m_mutex);
+    return  m_number_of_connected_clients;
+}
+
 safibra_tcp_client::~safibra_tcp_client()
 {
     if (is_running())
@@ -133,11 +141,9 @@ void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_bu
 
     /* Check for disconnection*/
     if(nread < 0) {
-        uv_close((uv_handle_t *)client, free_handle_on_close);
+        uv_close((uv_handle_t *)client, on_client_disconnected);
         if (nread != UV_EOF)
             a->on_error(uv_strerror((int)nread));
-        else
-            a->m_on_client_disconnected_cb();
         return;
     }
 
@@ -153,23 +159,39 @@ void safibra_tcp_client::on_new_connection(uv_stream_t *server, int status) {
         return;
     }
 
+    {
+        std::lock_guard lock(a->m_mutex);
+        a->m_number_of_connected_clients++;
+    }
+    a->m_on_client_connected_cb();
+
     uv_tcp_t *client = (uv_tcp_t *)malloc(sizeof(uv_tcp_t));
     uv_tcp_init(&(a->m_loop), client);
 
     if (uv_accept(server, (uv_stream_t *)client) == 0) {
         uv_read_start((uv_stream_t *)client, alloc_cb, on_read);
-        a->m_on_client_connected_cb();
     } else {
         /* for some reason we could not accept a connection */
-        uv_close((uv_handle_t *)client, free_handle_on_close);
         a->on_error(uv_strerror(status));
-        return;
+        uv_close((uv_handle_t *)client, on_client_disconnected);
     }
 }
 
 void safibra_tcp_client::alloc_cb(uv_handle_t *, size_t size, uv_buf_t *buf) {
     /* Generate buffer for the handle */
     *buf = uv_buf_init((char*)malloc(size), (unsigned int)size);
+}
+
+void safibra_tcp_client::on_client_disconnected(uv_handle_t* handle)
+{
+    auto a = (safibra_tcp_client*)(handle->loop->data);
+    free_handle_on_close(handle);
+
+    {
+        std::lock_guard lock(a->m_mutex);
+        a->m_number_of_connected_clients--;
+    }
+    a->m_on_client_disconnected_cb();
 }
 
 void safibra_tcp_client::on_error(const std::string& message)

@@ -13,6 +13,7 @@ struct safibra_packet {
 	char* device_id;
 	double* time;
 	double* readouts;
+	uint16_t sequence_no;
 	size_t length;
 };
 
@@ -41,11 +42,12 @@ DLL_PUBLIC safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
                                        safibra_stopped_listening_cb stopped_listening_cb,
                                        safibra_data data_available_cb);
 
-DLL_PUBLIC void safibra_start(safibra_client client, const int port);
+DLL_PUBLIC void safibra_start(safibra_client client, int port);
 DLL_PUBLIC void safibra_stop(safibra_client client);
 DLL_PUBLIC bool safibra_is_running(safibra_client client);
 
 DLL_PUBLIC void safibra_free_buffer(safibra_packet_buffer buffer);
 DLL_PUBLIC void safibra_free_client(safibra_client client);
 
+DLL_PUBLIC int safibra_number_of_clients(safibra_client client);
 EXTERN_C_END
