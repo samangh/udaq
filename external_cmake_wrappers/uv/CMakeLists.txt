@@ -1,10 +1,9 @@
 set(TARGET "uv")
 
-if(WIN32)
-  find_package(unofficial-libuv CONFIG SILENT)
-  if (TARGET unofficial::libuv::libuv)
-    set(LIBUV_TARGET unofficial::libuv::libuv)
-  endif()
+# See if vcpkg's libuv is available
+find_package(unofficial-libuv CONFIG QUIET)
+if (TARGET unofficial::libuv::libuv)
+  set(LIBUV_TARGET unofficial::libuv::libuv)
 endif()
 
 if(NOT LIBUV_TARGET)
