@@ -3,49 +3,73 @@
 #include <udaq/devices/safibra/sigproc_server.h>
 
 
-void* safibra_create_client(safibra_error_cb_t* erro_cb,
+safibra_client safibra_create_client(safibra_error_cb_t* erro_cb,
                             safibra_connected_cb* client_connected_cb,
                             safibra_disconnected_cb* client_disconnected_cb,
                             safibra_started_listening_cb* started_listening_cb,
                             safibra_stopped_listening_cb* stopped_listening_cb,
                             safibra_data* data_available_cb) {
-
-	return new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {(*erro_cb)(msg.c_str(), msg.length());},
+    safibra_client a;
+    a.client = 	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {(*erro_cb)(msg.c_str());},
         *client_connected_cb,
         *client_disconnected_cb,
         *started_listening_cb,
         *stopped_listening_cb,
         [data_available_cb](std::vector<udaq::devices::safibra::SensorReadout> in) {
-			auto data = new safibra_r[in.size()];
+            auto buffer = new safibra_packet_buffer();
+            buffer->length = in.size();
+            buffer->packets = new safibra_packet[buffer->length];
 
-			for (const auto& in_readout : in)
+            for (size_t i=0; i < buffer->length; i++)
 			{
-                data[0] = safibra_r();
-				
-                data[0].device_id = new char[in_readout.device_id.size() + 1];
-                std::copy_n(in_readout.device_id.c_str(), in_readout.device_id.size(), data[0].device_id);
+                const auto& in_readout = in[i];
+                
+                buffer->packets[i] = safibra_packet();			               
 
-                data[0].sensor_id = new char[in_readout.sensor_id.size() + 1];
-                std::copy_n(in_readout.sensor_id.c_str(), in_readout.sensor_id.size(), data[0].sensor_id);
+                size_t device_id_length = in_readout.device_id.size() + 1;
+                buffer->packets[i].device_id = new char[device_id_length];
+                std::copy_n(in_readout.device_id.c_str(), device_id_length, buffer->packets[i].device_id);
 
-                int length = in_readout.readouts.size();
+                size_t sensor_id_length = in_readout.sensor_id.size() + 1;
+                buffer->packets[i].sensor_id = new char[sensor_id_length];
+                std::copy_n(in_readout.sensor_id.c_str(), sensor_id_length, buffer->packets[i].sensor_id);
 
-                data[0].time = new double[length];
-                std::copy_n(&(in_readout.time)[0], length, data[0].time);
+                size_t length = in_readout.readouts.size();
 
-                data[0].readouts = new double[length];
-                std::copy_n(&(in_readout.readouts)[0], length, data[0].readouts);
+                buffer->packets[i].time = new double[length];
+                std::copy_n(&(in_readout.time)[0], length, buffer->packets[i].time);
 
-                data[0].length = length;
+                buffer->packets[i].readouts = new double[length];
+                std::copy_n(&(in_readout.readouts)[0], length, buffer->packets[i].readouts);
+
+                buffer->packets[i].length = length;
 			}
 
-            (data_available_cb)(data, in.size());
+            (*data_available_cb)(buffer);
 		}
 	);
+
+    return a;
 }
 
 
-void safibra_start(void* client, const int port) {
-	auto a = (udaq::devices::safibra::SigprogServer*)client;
+void safibra_start(safibra_client client, const int port) {
+	auto a = (udaq::devices::safibra::SigprogServer*)client.client;
 	a->start(port);
+}
+
+void safibra_free(safibra_packet_buffer* buffer) {
+    for (int i = 0; i < buffer->length; i++)
+    {
+        delete[] buffer->packets[i].device_id;
+        delete[] buffer->packets[i].sensor_id;
+        delete[] buffer->packets[i].readouts;
+        delete[] buffer->packets[i].time;
+    }
+
+    delete[] buffer;
+}
+
+void safibra_free_client(safibra_client client){
+    delete (udaq::devices::safibra::SigprogServer*)client.client;    
 }
