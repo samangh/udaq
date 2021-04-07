@@ -1,14 +1,28 @@
 #pragma once
 
-
 #ifdef __cplusplus
-#include <cstddef>
-  #define EXTERN_C extern "C"
+  #include <cstddef>
 #else
   #include <stdbool.h>
   #include <stddef.h>
-  #define EXTERN_C
 #endif
+
+// Note: winnt contains a defintion of EXTERN_C_START ad EXTERN_C_END
+#ifndef EXTERN_C_START
+#ifdef __cplusplus
+#define EXTERN_C_START extern "C" {    
+#else
+#define EXTERN_C_START
+#endif
+#endif
+#ifndef EXTERN_C_END
+#ifdef __cplusplus
+#define EXTERN_C_END }    
+#else
+#define EXTERN_C_END
+#endif
+#endif
+
 
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef DEVICES_WRAPPER_BUILDING_DLL
