@@ -23,8 +23,8 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
             for (size_t i=0; i < buffer.length; i++)
 			{
                 const auto& in_readout = in[i];
-                
-                buffer.packets[i] = safibra_packet();			               
+
+                buffer.packets[i] = safibra_packet();
 
                 size_t device_id_length = in_readout.device_id.size() + 1;
                 buffer.packets[i].device_id = new char[device_id_length];
@@ -71,7 +71,7 @@ void safibra_free_buffer(safibra_packet_buffer buffer) {
 }
 
 void safibra_free_client(safibra_client client){
-    delete (udaq::devices::safibra::SigprogServer*)client.client;    
+    delete (udaq::devices::safibra::SigprogServer*)client.client;
 }
 
 int safibra_number_of_clients(safibra_client client)
