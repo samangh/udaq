@@ -1,4 +1,4 @@
-# udaq [![build](https://github.com/samangh/udaq/actions/workflows/build.yml/badge.svg)](https://github.com/samangh/udaq/actions/workflows/build.yml)
+# udaq [![Linux](https://github.com/samangh/udaq/actions/workflows/linux.yml/badge.svg)](https://github.com/samangh/udaq/actions/workflows/linux.yml) [![Windows](https://github.com/samangh/udaq/actions/workflows/windows.yml/badge.svg)](https://github.com/samangh/udaq/actions/workflows/windows.yml)
 
 ## Requirements
 
