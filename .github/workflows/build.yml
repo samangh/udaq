@@ -31,6 +31,11 @@ jobs:
              sudo apt install ${{ matrix.config.package }} \
                               libboost-dev libboost-thread-dev \
                               libsdl2-dev libvisa-dev libuv1-dev libfmt-dev
+             git clone --depth 1 https://github.com/Stiffstream/sobjectizer.git
+             mkdir -p sobjectizer/dev/so_5/build
+             cd sobjectizer/dev/so_5/build
+             cmake .. 
+             cmake --build . --target install
   
       - name: Run CMake
         working-directory: ${{github.workspace}}
