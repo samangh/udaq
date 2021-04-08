@@ -4,6 +4,7 @@ on: [workflow_dispatch, pull_request]
 
 env:
   BUILD_TYPE: Release
+  MAKEFLAGS: -j3
 
 jobs:
   build:
@@ -35,7 +36,7 @@ jobs:
              mkdir -p sobjectizer/dev/so_5/build
              cd sobjectizer/dev/so_5/build
              cmake .. 
-             cmake --build . --target install
+             sudo cmake --build . --target install
   
       - name: Run CMake
         working-directory: ${{github.workspace}}
