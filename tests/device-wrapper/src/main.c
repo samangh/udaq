@@ -1,4 +1,8 @@
 #include <udaq/devices/wrappers/safibra_interrogator.h>
+#include <stdio.h>
+
+//The following is needed for sleep
+
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -32,7 +36,7 @@ void on_data(safibra_packet_buffer buffer)
     safibra_free_buffer(buffer);
 };
 
-void empty()
+void empty(void)
 {
 };
 
@@ -42,7 +46,6 @@ int main(void)
     safibra_start(client, 5555);
     sleep(5000);
     safibra_is_running(client);
-    int a = safibra_number_of_clients(client);
     safibra_free_client(client);
     return 0;
 }
