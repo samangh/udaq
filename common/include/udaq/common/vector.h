@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <memory>
+#include <algorithm>
 
 namespace udaq::common::vector {
 
