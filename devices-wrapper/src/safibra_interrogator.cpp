@@ -84,3 +84,8 @@ bool safibra_is_running(safibra_client client) {
     auto a = (udaq::devices::safibra::SigprogServer*)client.client;
     return a->is_running();
 }
+
+void safibra_stop(safibra_client client) {
+    auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    a->stop();
+}
