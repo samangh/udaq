@@ -7,16 +7,17 @@ env:
 
 jobs:
   build:
-    name: ${{matrix.config.os}}-${{matrix.config.cc}}-${{matrix.config.ver}}
+    name: ${{matrix.config.os}}-${{matrix.config.cc}}-${{matrix.config.ver}}-shared_${{matrix.config.shared_libs}}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9, package: g++-9 }
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10, package: g++-10 }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9, package: clang-9 }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10 }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9, package: g++-9, shared_libs: ON}
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10, package: g++-10,  shared_libs: ON }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9, package: clang-9, shared_libs: ON }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10, shared_libs: ON }
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10, shared_libs: OFF }
 
     steps:
       - name: Checkout repository
@@ -39,7 +40,7 @@ jobs:
         run: |
              mkdir build
              cd build
-             cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+             cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTS=ON -DBUILD_SHARED_LIBS=${{matrix.config.shared_libs}}
   
       - name: Build
         working-directory: ${{github.workspace}}/build
