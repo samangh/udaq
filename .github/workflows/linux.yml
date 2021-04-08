@@ -38,7 +38,7 @@ jobs:
              git clone --depth 1 https://github.com/Stiffstream/sobjectizer.git $SO_REPO
              mkdir -p $SO_REPO/dev/so_5/build
              cd $SO_REPO/dev/so_5/build
-             cmake .. 
+             cmake .. -DSOBJECTIZER_BUILD_STATIC=OFF
              sudo cmake --build . --target install
   
       - name: Run CMake
@@ -49,7 +49,7 @@ jobs:
         run: |
              mkdir build
              cd build
-             cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTS=ON -DBUILD_SHARED_LIBS=${{matrix.config.shared_libs}}
+             cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTS=ON
   
       - name: Build
         working-directory: ${{github.workspace}}/build
