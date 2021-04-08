@@ -10,6 +10,7 @@ jobs:
     name: ${{matrix.config.os}}-${{matrix.config.cc}}-${{matrix.config.ver}}
     runs-on: ${{ matrix.config.os }}
     strategy:
+      fail-fast: false
       matrix:
         config:
            - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9, package: g++-9 }
