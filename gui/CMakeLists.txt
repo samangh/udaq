@@ -34,7 +34,7 @@ target_link_libraries(${TARGET}
     implot
     devices
     common
-    fmt::fmt-header-only
+    fmt::fmt
     imgui-filebrowser
     imgui-helper
   )

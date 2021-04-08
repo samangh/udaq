@@ -45,7 +45,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ##
 
 find_package(Threads REQUIRED)
-find_package(fmt CONFIG REQUIRED)
+find_package(fmt REQUIRED)
 find_package(VISA REQUIRED)
 
 # find_package(wampcc REQUIRED)
