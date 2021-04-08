@@ -8,17 +8,16 @@ env:
 
 jobs:
   build:
-    name: ${{matrix.config.os}}-${{matrix.config.cc}}-${{matrix.config.ver}}-shared_${{matrix.config.shared_libs}}
+    name: ${{matrix.config.os}}-${{matrix.config.cc}}-${{matrix.config.ver}}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9, package: g++-9, shared_libs: ON}
-           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10, package: g++-10,  shared_libs: ON }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9, package: clang-9, shared_libs: ON }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10, shared_libs: ON }
-           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10, shared_libs: OFF }
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 9, package: g++-9}
+           - { os: ubuntu-latest, cc: gcc, cxx: g++, ver: 10, package: g++-10}
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 9, package: clang-9}
+           - { os: ubuntu-latest, cc: clang, cxx: clang++, ver: 10, package: clang-10}
 
     steps:
       - name: Checkout repository
@@ -26,15 +25,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install Packages
         run: |
              sudo apt update
              sudo apt install ${{ matrix.config.package }} \
                               libboost-dev libboost-thread-dev \
                               libsdl2-dev libvisa-dev libuv1-dev libfmt-dev
-             git clone --depth 1 https://github.com/Stiffstream/sobjectizer.git
-             mkdir -p sobjectizer/dev/so_5/build
-             cd sobjectizer/dev/so_5/build
+
+      - name: Install sobjectizer
+        run: |
+             export SO_REPO=$(mktemp -d)
+             git clone --depth 1 https://github.com/Stiffstream/sobjectizer.git $SO_REPO
+             mkdir -p $SO_REPO/dev/so_5/build
+             cd $SO_REPO/dev/so_5/build
              cmake .. 
              sudo cmake --build . --target install
   
