@@ -21,6 +21,7 @@ target_include_directories(${TARGET}
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
   PRIVATE
   )
 
@@ -30,6 +31,11 @@ target_link_libraries(${TARGET}
     uv
   PRIVATE
   )
+
+include (GenerateExportHeader)
+generate_export_header(${TARGET}
+             EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export/${TARGET}.h")
+
 
 ##
 ## Compiler flags
