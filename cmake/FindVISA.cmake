@@ -5,12 +5,19 @@
 if(WIN32)
   set(IVI_DIR "C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT")
 
+  # Use 32-bit visa in x86 and 64-bit in x64 by looking at pointer size
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(VISA_LIB_NAME visa64)
+  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(VISA_LIB_NAME visa32)
+  endif()
+
   find_path(VISA_INCLUDE_DIRS
     NAMES visa.h
     HINTS ${VISA_DIR}/include ${IVI_DIR}/include)
 
   find_library(VISA_LIBRARIES
-    NAMES visa64 visa32
+    NAMES ${VISA_LIB_NAME}
     HINTS ${VISA_DIR}/lib ${VISA_DIR}/lib/msc ${VISA_DIR}/Lib_x64/msc ${IVI_DIR}/lib/msc ${IVI_DIR}/Lib_x64/msc)
 endif()
 
