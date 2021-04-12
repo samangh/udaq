@@ -9,8 +9,7 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
                             safibra_started_listening_cb started_listening_cb,
                             safibra_stopped_listening_cb stopped_listening_cb,
                             safibra_data data_available_cb) {
-    safibra_client a;
-    a.client = 	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {erro_cb(msg.c_str());},
+    safibra_client a = 	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {erro_cb(msg.c_str());},
         client_connected_cb,
         client_disconnected_cb,
         started_listening_cb,
@@ -56,7 +55,7 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
 
 
 void safibra_start(safibra_client client, int port) {
-	auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    auto a = (udaq::devices::safibra::SigprogServer*)client;
 	a->start(port);
 }
 
@@ -71,21 +70,21 @@ void safibra_free_buffer(safibra_packet_buffer buffer) {
 }
 
 void safibra_free_client(safibra_client client){
-    delete (udaq::devices::safibra::SigprogServer*)client.client;
+    delete (udaq::devices::safibra::SigprogServer*)client;
 }
 
 int safibra_number_of_clients(safibra_client client)
 {
-    auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    auto a = (udaq::devices::safibra::SigprogServer*)client;
     return a->number_of_clients();
 }
 
 bool safibra_is_running(safibra_client client) {
-    auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    auto a = (udaq::devices::safibra::SigprogServer*)client;
     return a->is_running();
 }
 
 void safibra_stop(safibra_client client) {
-    auto a = (udaq::devices::safibra::SigprogServer*)client.client;
+    auto a = (udaq::devices::safibra::SigprogServer*)client;
     a->stop();
 }

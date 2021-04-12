@@ -9,7 +9,6 @@ extern "C" {
 
 typedef struct safibra_packet safibra_packet;
 typedef struct safibra_packet_buffer safibra_packet_buffer;
-typedef struct safibra_client safibra_client;
 
 struct safibra_packet {
 	char* sensor_id;
@@ -25,9 +24,7 @@ struct safibra_packet_buffer {
 	size_t length;
 };
 
-struct safibra_client {
-	void* client;
-};
+typedef void* safibra_client;
 
 typedef void (*safibra_error_cb_t)(const char* msg);
 typedef void (*safibra_connected_cb)(void);
