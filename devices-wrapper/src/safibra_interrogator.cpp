@@ -27,7 +27,7 @@ void safibra_start(safibra_client client, int port) {
 }
 
 void safibra_free_buffer(safibra_packet_buffer buffer) {
-    for (int i = 0; i < buffer.length; i++)
+    for (size_t i = 0; i < buffer.length; i++)
     {
         delete[] buffer.packets[i].device_id;
         delete[] buffer.packets[i].sensor_id;
