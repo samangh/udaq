@@ -27,6 +27,8 @@ if(MSVC)
   option(USE_STATIC_RUNTIME "Statically link against the C++ runtime" OFF)
 endif()
 
+option (LABVIEW_SUPPORT "Build with LabVIEW support" OFF)
+
 ##
 ## Misc
 ##
@@ -47,6 +49,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
 find_package(VISA REQUIRED)
+if(LABVIEW_SUPPORT)
+	find_package(LabVIEW REQUIRED)
+endif()
 
 # find_package(wampcc REQUIRED)
 
