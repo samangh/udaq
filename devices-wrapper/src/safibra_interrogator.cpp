@@ -9,7 +9,10 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
                             safibra_started_listening_cb started_listening_cb,
                             safibra_stopped_listening_cb stopped_listening_cb,
                             safibra_data data_available_cb) {
-    return	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {erro_cb(msg.c_str());},
+    return	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {
+        if (erro_cb!=nullptr)
+            erro_cb(msg.c_str());
+        },
         client_connected_cb,
         client_disconnected_cb,
         started_listening_cb,

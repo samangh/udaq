@@ -74,7 +74,8 @@ void safibra_tcp_client::start(const int port) {
         throw new std::runtime_error(uv_strerror(err));
 
     m_thread = std::thread([&](){
-        m_on_start_cb();
+        if (m_on_start_cb!=nullptr)
+            m_on_start_cb();
         while (true) {
             uv_run(&m_loop, UV_RUN_DEFAULT);
 
@@ -94,7 +95,8 @@ void safibra_tcp_client::start(const int port) {
             if (uv_loop_close(&m_loop) != UV_EBUSY)
                 break;
         }
-        m_on_stop_cb();
+        if (m_on_stop_cb != nullptr)
+            m_on_stop_cb();
     });
 }
 
@@ -163,7 +165,8 @@ void safibra_tcp_client::on_new_connection(uv_stream_t *server, int status) {
         std::lock_guard lock(a->m_mutex);
         a->m_number_of_connected_clients++;
     }
-    a->m_on_client_connected_cb();
+    if (a->m_on_client_connected_cb!=nullptr)
+        a->m_on_client_connected_cb();
 
     uv_tcp_t *client = (uv_tcp_t *)malloc(sizeof(uv_tcp_t));
     uv_tcp_init(&(a->m_loop), client);
@@ -191,12 +194,14 @@ void safibra_tcp_client::on_client_disconnected(uv_handle_t* handle)
         std::lock_guard lock(a->m_mutex);
         a->m_number_of_connected_clients--;
     }
-    a->m_on_client_disconnected_cb();
+    if (a->m_on_client_disconnected_cb!=nullptr)
+        a->m_on_client_disconnected_cb();
 }
 
 void safibra_tcp_client::on_error(const std::string& message)
 {
-    m_on_error_cb(message);
+    if (m_on_error_cb!=nullptr)
+        m_on_error_cb(message);
 }
 
 }

@@ -42,7 +42,7 @@ void empty(void)
 
 int main(void)
 {
-    safibra_client client = safibra_create_client(on_error, empty, &empty, &empty, &empty, &empty);
+    safibra_client client = safibra_create_client(on_error, empty, empty, empty, empty, empty);
     safibra_start(client, 5555);
     sleep(5000);
     analyse(safibra_get_buffer(client));

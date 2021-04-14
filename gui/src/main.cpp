@@ -269,7 +269,7 @@ int main(int, char**)
     //std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
     auto client = udaq::devices::safibra::SigprogServer(
         on_error, on_client_connected, on_client_disconnected,
-        on_server_started, on_server_stopped, on_data_available);
+        on_server_started, on_server_stopped, nullptr);
 
     ImGui::FileBrowser fileDialog(ImGuiFileBrowserFlags_SelectDirectory|ImGuiFileBrowserFlags_CreateNewDir|ImGuiFileBrowserFlags_CloseOnEsc);
 
