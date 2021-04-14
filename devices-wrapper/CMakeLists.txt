@@ -34,7 +34,8 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     devices
-    common)
+    common
+    $<$<BOOL:${LABVIEW_SUPPORT}>:LabVIEW>)
 
 target_compile_definitions(${TARGET} PRIVATE DEVICES_WRAPPER_BUILDING_DLL)
 
