@@ -7,19 +7,23 @@
 extern "C" {
 #endif
 
-typedef struct safibra_packet {
+typedef struct safibra_packet_buffer safibra_packet_buffer;
+typedef struct safibra_packet safibra_packet;
+
+struct safibra_packet {
 	char* sensor_id;
 	char* device_id;
 	double* time;
 	double* readouts;
 	uint16_t sequence_no;
 	size_t length;
-} safibra_packet;
+};
 
-typedef struct safibra_packet_buffer {
+struct safibra_packet_buffer {
 	safibra_packet* packets;
 	size_t length;
-} safibra_packet_buffer;
+};
+
 
 typedef void* safibra_client;
 
