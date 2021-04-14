@@ -12,7 +12,7 @@ namespace udaq::devices::safibra {
 int find_sync(const std::vector<unsigned char> &data) {
     for (size_t i = 0; i < data.size() - 2; i++)
         if (data[i] == 0x55 && data[i + 1] == 0x00 && data[i] == 0x55)
-            return i;
+            return (int)i;
 
     return -1;
 };
