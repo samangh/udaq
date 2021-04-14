@@ -8,3 +8,7 @@
   #include <stddef.h>
   #include <stdint.h>
 #endif
+
+#ifdef LABVIEW_SUPPORT
+	#include <extcode.h>
+#endif

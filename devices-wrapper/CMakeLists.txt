@@ -32,12 +32,14 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
+    $<$<BOOL:${LABVIEW_SUPPORT}>:LabVIEW>
   PRIVATE
     devices
-    common
-    $<$<BOOL:${LABVIEW_SUPPORT}>:LabVIEW>)
+    common)
 
-target_compile_definitions(${TARGET} PRIVATE DEVICES_WRAPPER_BUILDING_DLL)
+if(LABVIEW_SUPPORT)
+  target_compile_definitions(${TARGET} PUBLIC LABVIEW_SUPPORT)
+endif()
 
 include (GenerateExportHeader)
 generate_export_header(${TARGET}
