@@ -21,7 +21,7 @@ void on_error(const char* msg) {
     printf("error: %s\n", msg);
 };
 
-void on_data(safibra_packet_buffer buffer)
+void analyse(safibra_packet_buffer buffer)
 {
     for (int i = 0; i < buffer.length; i++)
     {
@@ -42,9 +42,10 @@ void empty(void)
 
 int main(void)
 {
-    safibra_client client = safibra_create_client(on_error, empty, &empty, &empty, &empty, &on_data);
+    safibra_client client = safibra_create_client(on_error, empty, &empty, &empty, &empty, &empty);
     safibra_start(client, 5555);
     sleep(5000);
+    analyse(safibra_get_buffer(client));
     safibra_is_running(client);
     safibra_free_client(client);
     return 0;

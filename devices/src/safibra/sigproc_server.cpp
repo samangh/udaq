@@ -100,7 +100,7 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
     }
 
     if (m_on_data_available_cb != nullptr)    
-        m_on_data_available_cb(get_data_buffer());
+        m_on_data_available_cb();
 }
 
 std::vector<SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {

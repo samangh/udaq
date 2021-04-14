@@ -19,7 +19,7 @@ class SigprogServer {
     typedef std::function<void(void)> on_client_disconnected_cb_t;
     typedef std::function<void(void)> on_start_cb_t;
     typedef std::function<void(void)> on_stop_cb_t;
-    typedef std::function<void(std::vector<SensorReadout>)> on_data_available_cb_t;
+    typedef std::function<void(void)> on_data_available_cb_t;
 
     SigprogServer(on_error_cb_t on_error_cb,
                   on_client_connected_cb_t on_client_connected_cb,
