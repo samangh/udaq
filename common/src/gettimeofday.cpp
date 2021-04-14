@@ -15,6 +15,10 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp) {
            tp->tv_sec = (long) ((ularge.QuadPart - epoch) / 10000000L);
            tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
 
+           /* The time zone is not used, we just have it in here so that
+            * tzp is amakred as a used variable*/
+           (void*)tzp;
+
            return 0;
       }
 #endif
