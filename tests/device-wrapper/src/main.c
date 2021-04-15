@@ -1,4 +1,4 @@
-#include <udaq/devices/wrappers/safibra_interrogator.h>
+#include <udaq/wrappers/c/safibra_interrogator.h>
 #include <stdio.h>
 
 //The following is needed for sleep

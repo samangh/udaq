@@ -1,4 +1,4 @@
-#include <udaq/devices/wrappers/safibra_interrogator.h>
+#include <udaq/wrappers/labview-c/safibra_interrogator.h>
 
 #include <udaq/devices/safibra/sigproc_server.h>
 

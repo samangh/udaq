@@ -97,7 +97,8 @@ add_subdirectory(helpers/imgui)
 add_subdirectory(common)
 add_subdirectory(devices)
 
-add_subdirectory(devices-wrapper)
+add_subdirectory(wrappers/c)
+add_subdirectory(wrappers/labview-c)
 
 add_subdirectory(udaq)
 add_subdirectory(gui)

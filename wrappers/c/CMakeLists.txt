@@ -1,4 +1,4 @@
-set(TARGET "devices-wrapper")
+set(TARGET "c-wrapper")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
 #find_package(Libuv REQUIRED)
@@ -32,14 +32,9 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-    $<$<BOOL:${LABVIEW_SUPPORT}>:LabVIEW>
   PRIVATE
     devices
     common)
-
-if(LABVIEW_SUPPORT)
-  target_compile_definitions(${TARGET} PUBLIC LABVIEW_SUPPORT)
-endif()
 
 include (GenerateExportHeader)
 generate_export_header(${TARGET}

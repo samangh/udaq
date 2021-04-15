@@ -1,4 +1,4 @@
-set(TARGET "devices-wrapper-test")
+set(TARGET "labview-c-wrapper")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
 #find_package(Libuv REQUIRED)
@@ -12,21 +12,34 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-add_executable(${TARGET} ${SRC_FILES})
+# This MUST be a shared library, as otherwise you can't export from it
+# See https://devblogs.microsoft.com/oldnewthing/20140321-00/?p=1433
+add_library(${TARGET} SHARED ${SRC_FILES})
 
 ##
 ## Includes
 ##
 
 target_include_directories(${TARGET}
-  PRIVATE
+  INTERFACE
+  PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-  )
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+  PRIVATE)
 
 target_link_libraries(${TARGET}
+  INTERFACE
+  PUBLIC
+   LabVIEW
   PRIVATE
-    c-wrapper)
+    devices
+    common)
+
+include (GenerateExportHeader)
+generate_export_header(${TARGET}
+             EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export/${TARGET}.h")
+
 
 ##
 ## Compiler flags
