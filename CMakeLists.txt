@@ -30,17 +30,24 @@ endif()
 option (LABVIEW_SUPPORT "Build with LabVIEW support" OFF)
 
 ##
-## Misc
+## Compile support
 ##
 
 # Export compile database for IDEs, needed for QtCreator
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ##
 ## CMake module paths
 ##
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+##
+## Import functions
+##
+
+include(setup_ide_folders)
 
 ##
 ## Packages

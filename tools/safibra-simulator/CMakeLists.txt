@@ -36,7 +36,9 @@ target_link_libraries(${TARGET}
     Boost::thread
     VISA
     common
-  )
+    )
+
+setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 ##
 ## Compiler flags

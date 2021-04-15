@@ -40,6 +40,7 @@ include (GenerateExportHeader)
 generate_export_header(${TARGET}
              EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export/${TARGET}.h")
 
+setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 ##
 ## Compiler flags

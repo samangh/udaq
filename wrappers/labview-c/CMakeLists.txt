@@ -46,6 +46,7 @@ set_target_properties(${TARGET} PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION  ${PROJECT_VERSION})
 
+setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 ##
 ## Compiler flags
