@@ -1,7 +1,7 @@
 set(TARGET "labview-c-wrapper")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
-#find_package(Libuv REQUIRED)
+find_package(LabVIEW REQUIRED)
 
 ##
 ## Source files

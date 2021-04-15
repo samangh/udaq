@@ -49,9 +49,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
 find_package(VISA REQUIRED)
-if(LABVIEW_SUPPORT)
-	find_package(LabVIEW REQUIRED)
-endif()
 
 # find_package(wampcc REQUIRED)
 
@@ -98,7 +95,9 @@ add_subdirectory(common)
 add_subdirectory(devices)
 
 add_subdirectory(wrappers/c)
-add_subdirectory(wrappers/labview-c)
+if(LABVIEW_SUPPORT)
+  add_subdirectory(wrappers/labview-c)
+endif()
 
 add_subdirectory(udaq)
 add_subdirectory(gui)
