@@ -15,7 +15,9 @@ set(NAMESPACE udaq)
 option (BUILD_SHARED_LIBS "Build shared libraries" ON)
 option (BUILD_TESTS "Build tests and related tools" OFF)
 
-if (NOT BUILD_SHARED_LIBS)
+if (BUILD_SHARED_LIBS)
+  set(USE_STATIC_LIBS_DEFAULT OFF)
+else()
   set(USE_STATIC_LIBS_DEFAULT ON)
 endif()
 

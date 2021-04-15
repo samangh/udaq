@@ -32,7 +32,7 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
-    sobjectizer::SharedLib
+     $<IF:$<BOOL:${USE_STATIC_LIBS}>,sobjectizer::StaticLib,sobjectizer::SharedLib>
   )
 
 ##
