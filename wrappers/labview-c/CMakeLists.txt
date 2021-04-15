@@ -40,13 +40,19 @@ include (GenerateExportHeader)
 generate_export_header(${TARGET}
   EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export/${TARGET}.h")
 
-
 set_target_properties(${TARGET} PROPERTIES
   FRAMEWORK TRUE
   VERSION ${PROJECT_VERSION}
   SOVERSION  ${PROJECT_VERSION})
 
 setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  target_compile_definitions(${TARGET} PUBLIC X64)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+  target_compile_definitions(${TARGET} PUBLIC X86)
+endif()
+
 
 ##
 ## Compiler flags
