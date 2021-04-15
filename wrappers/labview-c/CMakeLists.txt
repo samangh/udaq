@@ -32,10 +32,17 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
    LabVIEW
+   $<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>
   PRIVATE
     devices
     common
-    "$<$<BOOL:${APPLE}>:-framework CoreFoundation>")
+    "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
+	)
+
+# The LabVIEW Windows libraries have SAFESEH disabled, so to link we have to do the same
+if(MSVC)
+	target_link_options(${TARGET} PUBLIC "/SAFESEH:NO")
+endif()
 
 include (GenerateExportHeader)
 generate_export_header(${TARGET}
