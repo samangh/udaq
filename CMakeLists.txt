@@ -117,7 +117,7 @@ if(BUILD_TESTS)
   add_subdirectory(tests/find-resource)
   add_subdirectory(tests/idn)
   add_subdirectory(tests/device-wrapper)
-  add_subdirectory(test)
+  #add_subdirectory(test)
 endif()
 
 # Generate target list
