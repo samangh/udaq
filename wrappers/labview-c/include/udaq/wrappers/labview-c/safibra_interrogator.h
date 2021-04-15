@@ -1,12 +1,12 @@
 #pragma once
 
 #include <udaq/wrappers/labview-c/globals.h>
-#include <udaq/export/labview-c-wrapper.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#pragma pack(1)
 typedef struct safibra_packet_buffer safibra_packet_buffer;
 typedef struct safibra_packet safibra_packet;
 
@@ -23,10 +23,9 @@ struct safibra_packet_buffer {
 	safibra_packet* packets;
 	size_t length;
 };
-
+#pragma pack(1)
 
 typedef void* safibra_client;
-
 typedef void (*safibra_error_cb_t)(const char* msg);
 typedef void (*safibra_connected_cb)(void);
 typedef void (*safibra_disconnected_cb)(void);

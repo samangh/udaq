@@ -9,6 +9,6 @@
   #include <stdint.h>
 #endif
 
-#ifdef LABVIEW_SUPPORT
-	#include <extcode.h>
-#endif
+#include <extcode.h>
+#include <udaq/export/labview-c-wrapper.h>
+
