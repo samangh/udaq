@@ -34,7 +34,8 @@ target_link_libraries(${TARGET}
    LabVIEW
   PRIVATE
     devices
-    common)
+    common
+    "$<$<BOOL:${APPLE}>:-framework CoreFoundation>")
 
 include (GenerateExportHeader)
 generate_export_header(${TARGET}
