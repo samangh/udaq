@@ -29,7 +29,7 @@ struct safibra_packet_buffer {
     #pragma pack()
 #endif
 
-typedef void* safibra_client;
+typedef UHandle safibra_client;
 typedef void (*safibra_error_cb_t)(const char* msg);
 typedef void (*safibra_connected_cb)(void);
 typedef void (*safibra_disconnected_cb)(void);

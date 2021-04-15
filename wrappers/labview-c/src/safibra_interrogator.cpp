@@ -9,7 +9,9 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
                             safibra_started_listening_cb started_listening_cb,
                             safibra_stopped_listening_cb stopped_listening_cb,
                             safibra_data data_available_cb) {
-    return	new udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {
+    auto handle = DSNewHandle(sizeof(udaq::devices::safibra::SigprogServer));
+
+    new(*handle) udaq::devices::safibra::SigprogServer([erro_cb](const std::string& msg) {
         if (erro_cb!=nullptr)
             erro_cb(msg.c_str());
         },
@@ -19,6 +21,7 @@ safibra_client safibra_create_client(safibra_error_cb_t erro_cb,
         stopped_listening_cb,
         data_available_cb
 	);
+    return handle;
 }
 
 void safibra_start(safibra_client client, int port) {
