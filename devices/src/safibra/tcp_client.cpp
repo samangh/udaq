@@ -55,23 +55,23 @@ void safibra_tcp_client::start(const int port) {
     struct sockaddr_in dest;
     err = uv_ip4_addr("0.0.0.0", port, &dest);
     if ( err !=0)
-        throw new std::runtime_error(uv_strerror(err));
+        throw std::runtime_error(uv_strerror(err));
 
     /* Create socket */
     m_sock = std::make_unique<uv_tcp_t>();
     err = uv_tcp_init(&m_loop, m_sock.get());
     if ( err !=0)
-        throw new std::runtime_error(uv_strerror(err));
+        throw std::runtime_error(uv_strerror(err));
 
     /* Bind socket and address */
     err = uv_tcp_bind(m_sock.get(), (const struct sockaddr*)&dest, 0);
     if ( err !=0)
-        throw new std::runtime_error(uv_strerror(err));
+        throw std::runtime_error(uv_strerror(err));
 
     /* Start listening */
     err = uv_listen((uv_stream_t *)m_sock.get(), 20, on_new_connection);
     if (err != 0)
-        throw new std::runtime_error(uv_strerror(err));
+        throw std::runtime_error(uv_strerror(err));
 
     m_thread = std::thread([&](){
         if (m_on_start_cb!=nullptr)

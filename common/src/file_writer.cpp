@@ -72,7 +72,7 @@ void file_writer::start(std::filesystem::path path, file_writer::error_cb_t on_e
     unsigned int write_interval)
 {
     if (is_running())
-        throw new std::logic_error("this file writer is currently running");
+        throw std::logic_error("this file writer is currently running");
 
     m_error_cb = on_error_cb;
     m_started_cb = on_client_connected_cb;

@@ -12,7 +12,7 @@ namespace udaq::devices::safibra {
 struct Header {
  Header(const std::vector<unsigned char>& data, size_t start_pos) {
      if (data.size() - start_pos <  HEADER_LENGTH)
-        throw new std::invalid_argument(" Buffer too short for a Safibra interrogator stream header");
+        throw std::invalid_argument(" Buffer too short for a Safibra interrogator stream header");
 
      std::vector<char> device_id_c;
      std::vector<char> sensor_id_c;
