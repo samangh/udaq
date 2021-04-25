@@ -45,7 +45,7 @@ LABVIEW_C_WRAPPER_EXPORT safibra_client safibra_create_client(InstanceDataPtr *p
 	LVUserEventRef* stopped_listening_cb,
 	LVUserEventRef*	 data_available_cb);
 
-LABVIEW_C_WRAPPER_EXPORT MgErr safibra_start(safibra_client client, int port, LStrHandle errorMsg);
+LABVIEW_C_WRAPPER_EXPORT MgErr safibra_start(safibra_client client, int port, LStrHandle* errorMsg);
 LABVIEW_C_WRAPPER_EXPORT void safibra_stop(safibra_client client);
 LABVIEW_C_WRAPPER_EXPORT bool safibra_is_running(safibra_client client);
 
