@@ -6,7 +6,7 @@
 
 safibra_client safibra_create_client(InstanceDataPtr* ptr,
                                      LVUserEventRef* erro_cb,
-                                     LVUserEventRef* client_connected_cb,
+                                     LVUserEventRef *client_connected_cb,
                                      LVUserEventRef* client_disconnected_cb,
                                      LVUserEventRef* started_listening_cb,
                                      LVUserEventRef* stopped_listening_cb,
@@ -47,27 +47,22 @@ safibra_client safibra_create_client(InstanceDataPtr* ptr,
 }
 
 MgErr safibra_start(safibra_client client, int port, LStrHandle* errorMsg) {
+    if (client==NULL)
+    {
+        PopulateStringHandle(errorMsg, "Null safibra client passed");
+        return mgArgErr;
+    }
+
     try{
         auto a = (udaq::devices::safibra::SigprogServer*)(client);
         a->start(port);
-    } catch(const std::exception& ex)
+    } catch(...)
     {
-        PopulateStringHandle(errorMsg, ex.what());
+        ///PopulateStringHandle(errorMsg, ex.what());
         return ncNetErr;
     }
     return noErr;
 }
-
-void safibra_free_buffer(safibra_packet_buffer buffer) {
-    for (size_t i = 0; i < buffer.length; i++)
-    {
-        delete[] buffer.packets[i].device_id;
-        delete[] buffer.packets[i].sensor_id;
-        delete[] buffer.packets[i].readouts;
-        delete[] buffer.packets[i].time;
-    }
-}
-
 
 int safibra_number_of_clients(safibra_client client)
 {
@@ -80,53 +75,55 @@ bool safibra_is_running(safibra_client client) {
     return a->is_running();
 }
 
-MgErr safibra_get_buffer(safibra_client client, arr1DH array)
+MgErr safibra_get_buffer(safibra_client client, safibra_bufferH* buffer)
 {
-    //auto a = (udaq::devices::safibra::SigprogServer*)client;
-    //auto in = a->get_data_buffer();
-    //auto buffer = safibra_packet_buffer();
+    auto a = (udaq::devices::safibra::SigprogServer*)client;
+    auto in = a->get_data_buffer();
+    auto no_packets = in.size();
+    if (no_packets==0)
+        return noErr;
 
-    //buffer.length = in.size();
-    //buffer.packets = new safibra_packet[buffer.length];
+    DSSetHSzClr(*buffer, sizeof(safibra_bufferH) + (no_packets-1)*sizeof(safibra_packet));
+    (**buffer)->dimSize=no_packets;
 
-    //for (size_t i = 0; i < buffer.length; i++)
-    //{
-    //    const auto& in_readout = in[i];
+    MgErr err = noErr;
 
-    //    buffer.packets[i] = safibra_packet();
+    /* Populate 1st item */
+     err = PopulateStringHandle(&(**buffer)->elt[0].device_id, in[0].device_id);
+     if (err !=0)
+         return err;
+     err = PopulateStringHandle(&(**buffer)->elt[0].sensor_id, in[0].sensor_id);
+     if (err !=0)
+         return err;
 
-    //    size_t device_id_length = in_readout.device_id.size() + 1;
-    //    buffer.packets[i].device_id = new char[device_id_length];
-    //    std::copy_n(in_readout.device_id.c_str(), device_id_length, buffer.packets[i].device_id);
+     populate_arr1DH_double(err, (**buffer)->elt[0].time, in[0].time);
+     populate_arr1DH_double(err, (**buffer)->elt[0].readouts, in[0].readouts);
 
-    //    size_t sensor_id_length = in_readout.sensor_id.size() + 1;
-    //    buffer.packets[i].sensor_id = new char[sensor_id_length];
-    //    std::copy_n(in_readout.sensor_id.c_str(), sensor_id_length, buffer.packets[i].sensor_id);
-
-    //    size_t length = in_readout.readouts.size();
-
-    //    buffer.packets[i].time = new double[length];
-    //    std::copy_n(&(in_readout.time)[0], length, buffer.packets[i].time);
-
-    //    buffer.packets[i].readouts = new double[length];
-    //    std::copy_n(&(in_readout.readouts)[0], length, buffer.packets[i].readouts);
-
-    //    buffer.packets[i].sequence_no = in_readout.sequence_no;
-
-    //    buffer.packets[i].length = length;
-    //}
+     (**buffer)->elt[0].sequence_no = in[0].sequence_no;
+     (**buffer)->elt[0].length=in[0].readouts.size();
 
 
-     
-    auto result = NumericArrayResize(iL, (*array)->dimSize, (UHandle*)&array, 10);
-    (*array)->dimSize = 10; 
+    /*Now create remaining ones*/
+    for(size_t i=1; i <no_packets; i++)
+    {
+        safibra_packet p;
+        p.device_id = CreateStringHandle(in[i].device_id, err);
+        if (err !=0)
+            return err;
 
-    (*array)->elt[0] = 1;
-    (*array)->elt[1] = 2;
-    (*array)->elt[2] = 3;
-    (*array)->elt[3] = 4;
+        p.sensor_id = CreateStringHandle(in[i].sensor_id, err);
+        if (err !=0)
+            return err;
 
-    return result;
+        p.time = create_arr1DH_double(err, in[i].time);
+        p.readouts = create_arr1DH_double(err, in[i].readouts);
+        p.length=in[i].readouts.size();
+        p.sequence_no=in[i].sequence_no;
+
+        (**buffer)->elt[i]=p;
+    }
+
+    return err;
 }
 
 void safibra_stop(safibra_client client) {
@@ -149,4 +146,34 @@ MgErr safibra_free_memory(InstanceDataPtr *ptr)
         safibra_stop(*ptr);
     return DSDisposePtr(*ptr);
     *ptr=nullptr;
+}
+
+MgErr test(safibra_bufferH* b){
+
+    /* The buffer always comes with at least one element */
+    DSSetHSzClr(*b, sizeof(safibra_bufferH) + 9*sizeof(safibra_packet));
+    (**b)->dimSize=10;
+
+    MgErr err;
+
+    for(int i=1; i <10; i++)
+    {
+        safibra_packet p;
+        p.device_id = CreateStringHandle("device", err);
+        if (err !=0)
+            return err;
+
+        p.sensor_id = CreateStringHandle("sensor", err);
+        if (err !=0)
+            return err;
+
+        p.time = create_arr1DH_double(err, std::vector<double>{0,1,2});
+        p.readouts = create_arr1DH_double(err, std::vector<double>{0,1,2});
+        p.length=3;
+        p.sequence_no=0;
+
+        (**b)->elt[i]=p;
+    }
+
+    return noErr;
 }

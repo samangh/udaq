@@ -113,8 +113,6 @@ void safibra_tcp_client::stop()
     //        is still considered an active thread of execution and is therefore joinable.
     if (m_thread.joinable())
         m_thread.join();
-
-    m_on_stop_cb();
 }
 
 bool safibra_tcp_client::is_running()

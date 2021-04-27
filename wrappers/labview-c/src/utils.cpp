@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <algorithm>
+#include <vector>
 
 LStrHandle CreateStringHandle(const std::string& text, MgErr& err)
 {
@@ -11,10 +12,9 @@ LStrHandle CreateStringHandle(const std::string& text, MgErr& err)
     return newStringHandle;
 }
 
-arr1DH create_arr1DH(MgErr& err, size_t array_length)
+arr1DH_int32 create_arr1DH_int32(MgErr& err, size_t array_length)
 {
-
-    auto handle = (arr1DH)DSNewHandle(sizeof(arr1D));
+    auto handle = (arr1DH_int32)DSNewHandle(sizeof(arr1D_int32));
 
     err = NumericArrayResize(iL, 1, (UHandle*)&handle, array_length);
     if (err != noErr)    
@@ -22,6 +22,42 @@ arr1DH create_arr1DH(MgErr& err, size_t array_length)
     
     (*handle)->dimSize = array_length;
     return handle;
+}
+
+arr1DH_double create_arr1DH_double(MgErr& err, size_t array_length)
+{
+    auto handle = (arr1DH_double)DSNewHandle(sizeof(arr1D_double));
+
+    err = NumericArrayResize(fD, 1, (UHandle*)&handle, array_length);
+    if (err != noErr)
+        return handle;
+
+    (*handle)->dimSize = array_length;
+    return handle;
+}
+
+arr1DH_double create_arr1DH_double(MgErr& err, std::vector<double> data)
+{
+    auto handle = create_arr1DH_double(err, data.size());
+    if (err !=0)
+        return handle;
+
+    for(int i=0; i < (**handle).dimSize; i++)
+        (**handle).elt[i]=data[i];
+
+    return handle;
+}
+
+void populate_arr1DH_double(MgErr& err, arr1DH_double handle, std::vector<double> data)
+{
+    err = NumericArrayResize(fD, (*handle)->dimSize, (UHandle*)&handle, data.size());
+    if (err != noErr)
+        return;
+
+    (*handle)->dimSize = data.size();
+
+    for(int i=0; i < (*handle)->dimSize; i++)
+        (**handle).elt[i]=data[i];
 }
 
 MgErr PopulateStringHandle(LStrHandle* strHandle, const std::string& text)

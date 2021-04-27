@@ -105,7 +105,6 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
 
 std::vector<SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {
     std::lock_guard lock(m_mutex);
-
     return std::move(m_data_buffer);
 }
 

@@ -5,23 +5,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lv_prolog.h"
 
-typedef struct safibra_packet_buffer safibra_packet_buffer;
-typedef struct safibra_packet safibra_packet;
-
-struct safibra_packet {
+typedef struct {
+    LStrHandle device_id;
 	LStrHandle sensor_id;
-	LStrHandle device_id;
-	double* time;
-	double* readouts;
+    arr1DH_double time;
+    arr1DH_double readouts;
 	uint16_t sequence_no;
-	size_t length;
-};
+    uint32_t length;
+} safibra_packet;
 
-struct safibra_packet_buffer {
-	safibra_packet* packets;
-	size_t length;
-};
+typedef struct  {
+    int32_t dimSize;
+    safibra_packet elt[1];
+} safibra_buffer;
+typedef safibra_buffer** safibra_bufferH;
+
+#include "lv_epilog.h"
+
 
 typedef void* safibra_client;
 typedef void (*safibra_error_cb_t)(const char* msg);
@@ -34,24 +36,23 @@ typedef void (*safibra_data)(void);
 
 LABVIEW_C_WRAPPER_EXPORT MgErr safibra_reserve_memory(InstanceDataPtr* ptr);
 LABVIEW_C_WRAPPER_EXPORT MgErr safibra_free_memory(InstanceDataPtr *ptr);
+LABVIEW_C_WRAPPER_EXPORT MgErr test(safibra_bufferH* b);
 
 
 /* Creates a new client for Safibra FBG interrogators. The resultign client must be freed by calling safibra_free_client() afterards. */
 LABVIEW_C_WRAPPER_EXPORT safibra_client safibra_create_client(InstanceDataPtr *ptr,
-	LVUserEventRef*	 erro_cb,
-	LVUserEventRef* client_connected_cb,
-	LVUserEventRef* client_disconnected_cb,
-	LVUserEventRef* started_listening_cb,
-	LVUserEventRef* stopped_listening_cb,
-	LVUserEventRef*	 data_available_cb);
+    LVUserEventRef*	 erro_cb,
+    LVUserEventRef* client_connected_cb,
+    LVUserEventRef* client_disconnected_cb,
+    LVUserEventRef* started_listening_cb,
+    LVUserEventRef* stopped_listening_cb,
+    LVUserEventRef*	 data_available_cb);
 
 LABVIEW_C_WRAPPER_EXPORT MgErr safibra_start(safibra_client client, int port, LStrHandle* errorMsg);
 LABVIEW_C_WRAPPER_EXPORT void safibra_stop(safibra_client client);
 LABVIEW_C_WRAPPER_EXPORT bool safibra_is_running(safibra_client client);
 
-LABVIEW_C_WRAPPER_EXPORT MgErr safibra_get_buffer(safibra_client client, arr1DH handle);
-
-LABVIEW_C_WRAPPER_EXPORT void safibra_free_buffer(safibra_packet_buffer buffer);
+LABVIEW_C_WRAPPER_EXPORT MgErr safibra_get_buffer(safibra_client client, safibra_bufferH* buffer);
 
 LABVIEW_C_WRAPPER_EXPORT int safibra_number_of_clients(safibra_client client);
 
