@@ -15,32 +15,32 @@ safibra_client safibra_create_client(InstanceDataPtr* ptr,
     [erro_cb](const std::string& msg) {
         MgErr er;
         auto s = CreateStringHandle(msg, er);
-        if (erro_cb!=nullptr)
+        if (*erro_cb!=0)
             PostLVUserEvent(*erro_cb, &s);
     },
     [client_connected_cb]() {
         int i = 0;
-        if (client_connected_cb!=nullptr)
+        if (*client_connected_cb!=0)
             PostLVUserEvent(*client_connected_cb, &i);
     },
     [client_disconnected_cb]() {
         int i = 0;
-        if (client_disconnected_cb!=nullptr)
+        if (*client_disconnected_cb!=0)
             PostLVUserEvent(*client_disconnected_cb, &i);
     },
     [started_listening_cb]() {
         int i = 0;
-        if (started_listening_cb!=nullptr)
+        if (*started_listening_cb!=0)
             PostLVUserEvent(*started_listening_cb, &i);
     },
     [stopped_listening_cb]() {
         int i = 0;
-        if (stopped_listening_cb!=nullptr)
+        if (*stopped_listening_cb!=0)
             PostLVUserEvent(*stopped_listening_cb, &i);
     },
     [data_available_cb]() {
         int i = 0;
-        if (data_available_cb!=nullptr)
+        if (*data_available_cb!=0)
             PostLVUserEvent(*data_available_cb, &i);
     });
     return *ptr;
