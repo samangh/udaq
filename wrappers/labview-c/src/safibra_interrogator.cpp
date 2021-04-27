@@ -79,32 +79,36 @@ MgErr safibra_get_buffer(safibra_client client, safibra_bufferH* buffer)
 {
     auto a = (udaq::devices::safibra::SigprogServer*)client;
     auto in = a->get_data_buffer();
-    auto no_packets = in.size();
-    if (no_packets==0)
-        return noErr;
+    auto no_packets =in.size();
+    auto buffer_size=sizeof(safibra_bufferH) + (no_packets-1)*sizeof(safibra_packet);
 
-    DSSetHSzClr(*buffer, sizeof(safibra_bufferH) + (no_packets-1)*sizeof(safibra_packet));
+    /* Check if input buffer is empty, if so return nulll */
+    if (no_packets==0)
+    {
+        *buffer= NULL;
+        return noErr;
+    }
+
+    /* Dispose of output buffer data if there is any */
+    if (*buffer!=NULL)
+    {
+        for(int i=0; i < (**buffer)->dimSize; i++)
+        {
+            DSDisposeHandle((**buffer)->elt[i].device_id);
+            DSDisposeHandle((**buffer)->elt[i].sensor_id);
+            DSDisposeHandle((**buffer)->elt[i].readouts);
+            DSDisposeHandle((**buffer)->elt[i].time);
+        }
+        DSDisposeHandle(*buffer);
+    }
+
+    *buffer=(safibra_buffer**)DSNewHClr(buffer_size);
     (**buffer)->dimSize=no_packets;
 
     MgErr err = noErr;
 
-    /* Populate 1st item */
-     err = PopulateStringHandle(&(**buffer)->elt[0].device_id, in[0].device_id);
-     if (err !=0)
-         return err;
-     err = PopulateStringHandle(&(**buffer)->elt[0].sensor_id, in[0].sensor_id);
-     if (err !=0)
-         return err;
-
-     populate_arr1DH_double(err, (**buffer)->elt[0].time, in[0].time);
-     populate_arr1DH_double(err, (**buffer)->elt[0].readouts, in[0].readouts);
-
-     (**buffer)->elt[0].sequence_no = in[0].sequence_no;
-     (**buffer)->elt[0].length=in[0].readouts.size();
-
-
     /*Now create remaining ones*/
-    for(size_t i=1; i <no_packets; i++)
+    for(size_t i=0; i <no_packets; i++)
     {
         safibra_packet p;
         p.device_id = CreateStringHandle(in[i].device_id, err);
