@@ -1,4 +1,5 @@
 #include <udaq/helpers/imgui.h>
+#include <imgui_internal.h>
 
 namespace  udaq::helpers::imgui{
 
@@ -25,6 +26,21 @@ bool InputText(const char *label, std::string &str, ImGuiInputTextFlags flags)
 bool InputUInt32(const char *label, uint32_t& v, ImGuiInputTextFlags flags)
 {
     return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
+}
+
+void disable_item(bool visible, std::function<void ()> func)
+{
+
+        if (visible)
+        {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+            func();
+            ImGui::PopItemFlag();
+            ImGui::PopStyleVar();
+        }
+        else
+            func();
 }
 
 }
