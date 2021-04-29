@@ -66,15 +66,6 @@ else()
   add_library(wampcc ALIAS wampcc::wampcc_shared)
 endif()
 
-
-# find_package(wampcc REQUIRED)
-
-# if (BUILD_SHARED_LIBS)
-#   add_library(wampcc_selected ALIAS wampcc::wampcc_shared)
-# else()
-#   add_library(wampcc_selected ALIAS wampcc::wampcc_static)
-# endif()
-
 # Use boost statially if making a static library
 if(NOT BUILD_SHARED_LIBS)
   set(Boost_USE_STATIC_LIBS ON)
