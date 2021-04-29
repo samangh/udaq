@@ -125,98 +125,12 @@ void disable_item(bool visible, std::function<void(void)> func)
         func();
 }
 
-struct AxisMinMax
-{
-    double minimum;
-    double maximum;
-};
-
-struct FBGData
-{
-public:
-    bool showPlot;
-    bool autoScale = true;
-
-    void add(udaq::devices::safibra::SensorReadout in)
-    {
-        using namespace udaq::common;
-
-        if (size() == 0)
-        {
-            auto y_minmax = std::minmax_element(std::begin(in.readouts), std::end(in.readouts));
-            m_wavelength_minmax.minimum = *y_minmax.first;
-            m_wavelength_minmax.maximum = *y_minmax.second;
-
-            m_time_minmax.minimum = in.time.front();
-            m_time_minmax.maximum = in.time.back();
-        }
-        else
-        {
-            auto y_minmax = std::minmax_element(std::begin(in.readouts), std::end(in.readouts));
-            double in_y_min = *y_minmax.first;
-            double in_y_max = *y_minmax.second;
-
-            m_wavelength_minmax.minimum = (in_y_min < m_wavelength_minmax.minimum) ? in_y_min : m_wavelength_minmax.minimum;
-            m_wavelength_minmax.maximum = (in_y_max > m_wavelength_minmax.maximum) ? in_y_max : m_wavelength_minmax.maximum;
-
-            m_time_minmax.maximum = in.time.back();
-        }
-
-        vector::append(m_wavelength, in.readouts);
-        vector::append(m_time, in.time);
-
-        for (size_t i = 0; i < in.time.size(); i++)
-            writer.write(fmt::format("{},{}\n", in.time[i], in.readouts[i]));
-    }
-
-    const std::vector<double>& time() const { return m_time; }
-    const std::vector<double>& wavelength() const { return m_wavelength; }
-    AxisMinMax time_minmax() const
-    {
-        return m_time_minmax;
-    }
-    AxisMinMax twavelength_minmax() const
-    {
-        return m_wavelength_minmax;
-    }
-    size_t size() const { return m_time.size(); }
-    void clear()
-    {
-        m_time.clear();
-        m_wavelength.clear();
-        m_time_minmax = AxisMinMax();
-        m_wavelength_minmax = AxisMinMax();
-    }
-    udaq::common::file_writer writer;
-private:
-    std::vector<double> m_time;
-    std::vector<double> m_wavelength;
-    AxisMinMax m_time_minmax;
-    AxisMinMax m_wavelength_minmax;
-};
-
-void add_fbg_data(const std::string folder, std::map<std::string, std::map<std::string, FBGData>>& data,
-    const std::vector<udaq::devices::safibra::SensorReadout> &data_in, udaq::common::file_writer::error_cb_t error_c) {
-    using namespace udaq::common;
-    for (const auto& fbg_data_in : data_in)
-    {
-        auto& fbg = data[fbg_data_in.device_id][fbg_data_in.sensor_id];
-        fbg.add(fbg_data_in);
-        if (!fbg.writer.is_running())
-            fbg.writer.start(folder + "\\"+ fbg_data_in.sensor_id, error_c, []() {}, []() {});
-    }
-    
-}
-
 #ifdef WIN32
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
 int main(int, char**)
 {
-    std::vector<udaq::common::file_writer> writers;
-
-    std::string path = std::filesystem::current_path().string();
 
     auto imgui_context=initialise();
     //ImPlot::GetStyle().AntiAliasedLines = true;
@@ -224,54 +138,9 @@ int main(int, char**)
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    std::shared_mutex mutex_;
-
-    std::map<std::string, std::map<std::string, FBGData>> data;
 
     // Main loop
     bool done = false;
-
-    std::atomic<bool> error_received = false;
-    std::atomic<bool> client_connected = false;
-    std::atomic<bool> listening = false;
-    std::string error_message;
-
-    int port = 5555;
-    unsigned int downsample_points = 1000;
-
-    auto on_client_connected = [&]() { client_connected = true; };
-    auto on_client_disconnected = [&]() { client_connected = false; };
-    auto on_server_started = [&]() { listening = true; };
-    auto on_server_stopped = [&]() {
-        listening = false;
-        client_connected = false;
-    };
-
-
-    auto on_error = [&](const std::string message) {
-        error_received = true;
-        error_message = message;
-    };
-
-    auto on_file_error = [&](const std::string message) {
-        error_received = true;
-        error_message = message;
-    };
-
-    auto on_data_available =
-        [&](std::vector<udaq::devices::safibra::SensorReadout> data_in) {
-            std::unique_lock lock(mutex_);
-            add_fbg_data(path, data, data_in, on_file_error);
-    };
-
-
-
-    //std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
-    auto client = udaq::devices::safibra::SigprogServer(
-        on_error, on_client_connected, on_client_disconnected,
-        on_server_started, on_server_stopped, nullptr);
-
-    ImGui::FileBrowser fileDialog(ImGuiFileBrowserFlags_SelectDirectory|ImGuiFileBrowserFlags_CreateNewDir|ImGuiFileBrowserFlags_CloseOnEsc);
 
     while (!done)
     {
@@ -305,159 +174,6 @@ int main(int, char**)
             ImGui::EndMainMenuBar();
         }
 
-        ImGui::Begin("Interrogator Client",NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        {
-            udaq::helpers::imgui::InputText("Save Directory", path, 0);
-            if (ImGui::Button("Browse ..."))
-            {
-                //fileDialog.SetTitle("title");
-                //fileDialog.SetTypeFilters({ ".h", ".cpp" });
-                fileDialog.SetPwd(path);
-                fileDialog.Open();
-            }
-            ImGui::Separator();
-
-            disable_item(client.is_running(), [&]() {
-                ImGui::InputInt("Port", &port);
-            });
-
-            disable_item(client.is_running(), [&](){
-                if (ImGui::Button("Listen"))
-                {
-                    client.start(port);
-                }
-            });
-            ImGui::SameLine();
-            disable_item(!client.is_running(), [&]() {
-                if (ImGui::Button("Stop Listening"))
-                    client.stop();
-            });
-
-            ImGui::Separator();
-
-            ImGui::RadioButton("Listening", listening);
-            ImGui::RadioButton("Interrogator connected", client_connected);
-
-
-            {
-                std::shared_lock lock(mutex_);
-                if (data.size() > 0)
-                {
-                   bool is_client_running = client.is_running();
-                    ImGui::Separator();
-                    ImGui::Text("Interrogators:");
-                    for (auto& [device, sensors] : data)
-                        if (ImGui::TreeNode(device.c_str()))
-                        {
-                            for (auto& [sensor, fbg] : sensors)
-                            {
-                                ///ImGui::Checkbox(fmt::format("Plot {}", sensor).c_str(), &fbg.showPlot);
-                                ImGui::Text(fmt::format("{}:", sensor).c_str());
-                                ImGui::SameLine();
-                                ImGui::RadioButton("Recording",  is_client_running && fbg.writer.is_running());
-                                ImGui::SameLine();
-                                if (ImGui::Button(fmt::format("Show plot...##{}", sensor).c_str()))
-                                    fbg.showPlot=true;
-                            }
-
-                            ImGui::TreePop();
-                        }
-
-
-                    if (ImGui::Button("Clear all data"))
-                        for (auto& [device, sensors] : data)
-                            for (auto& [sensor, fbg] : sensors)
-                                fbg.clear();
-                }
-                 
-            }
-
-        }
-        ImGui::End();
-
-        fileDialog.Display();
-        if(fileDialog.HasSelected())
-        {
-            path=fileDialog.GetSelected().string();
-            fileDialog.ClearSelected();
-        }
-
-        if (data.size() >0){
-            std::shared_lock lock(mutex_);
-
-            for (auto& [device, sensors] : data)
-
-                for (auto& [sensor_id, fbg] : sensors)
-                    if (fbg.showPlot && fbg.time().size() > 0)
-                {
-
-                    ImGui::SetNextWindowSizeConstraints(ImVec2(400, 400), ImVec2(10240, 10240));
-                    ImGui::Begin(sensor_id.c_str(), &fbg.showPlot);
-
-                    ImGui::Checkbox("Autoscale", &fbg.autoScale);
-                    if (fbg.size() > 100)
-                    {
-                        ImGui::SameLine();
-                        ImGui::Text("Average rate: %.1f Hz", 100.0 / (fbg.time().back() - fbg.time()[fbg.size()-100] ));
-                    }
-
-                    ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum,
-                        fbg.twavelength_minmax().minimum, fbg.twavelength_minmax().maximum,
-                        fbg.autoScale ? ImGuiCond_::ImGuiCond_Always : ImGuiCond_::ImGuiCond_Once);
-                    if (ImPlot::BeginPlot(sensor_id.c_str(), NULL, NULL, ImVec2(-1, -1), ImGuiCond_::ImGuiCond_Always, ImPlotAxisFlags_Time)) {
-
-                        if (fbg.size() > downsample_points)
-                        {
-                            using namespace udaq::common;
-                            auto start_index = vector::upper_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Min);
-                            auto end_index = vector::lower_bound_index(fbg.time(), ImPlot::GetPlotLimits().X.Max);
-
-                            auto seperation = end_index - start_index;
-                            if (seperation < downsample_points)
-                                ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], seperation);
-                            else
-                            {
-                                int stride_length = (int)ceil(seperation / (double)downsample_points);
-                                int count = floor(seperation / (double)stride_length);
-                                ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[start_index], &fbg.wavelength()[start_index], count, 0, sizeof(double)*stride_length);
-                            }
-                        }
-                        else
-                        {
-                            ImPlot::PlotLine(sensor_id.c_str(), &fbg.time()[0], &fbg.wavelength()[0], (int)(fbg.size()));
-                        }
-
-                        ImPlot::EndPlot();
-                    }
-                    ImGui::End();
-                }
-         }
-
-        if (error_received)
-        {
-            ImGui::OpenPopup("Error");
-
-           // Always center this window when appearing
-           //ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-           //ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-            if (ImGui::BeginPopupModal("Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Text("Error: %s", error_message.c_str());
-                if (ImGui::Button("OK")) {
-                    client.stop();
-                    for (auto& [device, sensors] : data)
-                        for (auto& [sensor_id, fbg] : sensors)
-                        {
-                            if (fbg.writer.is_running())
-                                fbg.writer.stop();
-                        }
-                    error_received = false;
-                }
-                ImGui::EndPopup();
-            }
-        }
-
         // Rendering
         ImGui::Render();
         glViewport(0, 0, (int)imgui_context.io.DisplaySize.x, (int)imgui_context.io.DisplaySize.y);
@@ -466,10 +182,6 @@ int main(int, char**)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(imgui_context.window);
     }
-
-
-    if (client.is_running())
-        client.stop();
 
     clean_up(imgui_context);
 
