@@ -1,6 +1,53 @@
+#[=======================================================================[.rst:
+FindLibUV
+---------
+
+Find libuv includes and library.
+
+Imported Targets
+^^^^^^^^^^^^^^^^
+
+An :ref:`imported target <Imported targets>` named
+``LibUV::LibUV`` is provided if libuv has been found.
+
+Result Variables
+^^^^^^^^^^^^^^^^
+
+This module defines the following variables:
+
+``LibUV_FOUND``
+  True if libuv was found, false otherwise.
+``LibUV_INCLUDE_DIRS``
+  Include directories needed to include libuv headers.
+``LibUV_LIBRARIES``
+  Libraries needed to link to libuv.
+``LibUV_VERSION``
+  The version of libuv found.
+``LibUV_VERSION_MAJOR``
+  The major version of libuv.
+``LibUV_VERSION_MINOR``
+  The minor version of libuv.
+``LibUV_VERSION_PATCH``
+  The patch version of libuv.
+
+Cache Variables
+^^^^^^^^^^^^^^^
+
+This module uses the following cache variables:
+
+``LibUV_LIBRARY``
+  The location of the libuv library file.
+``LibUV_INCLUDE_DIR``
+  The location of the libuv include directory containing ``uv.h``.
+
+The cache variables should not be used by project code.
+They may be set by end users to point at libuv components.
+#]=======================================================================]
+
 #=============================================================================
 # Copyright 2014-2016 Kitware, Inc.
-# Modifed by S. Ghannadzadeg 2021
+# Modifed by S. Ghannadzadeh 2021
+
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
 #
@@ -8,14 +55,18 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the License for more information.
 
+# Modified by S. Ghannadzadeh to:
+# - prefer static version of libuv if USE_STATIC_LIBS is set
+# - use LIBUV_DIR as well as LibUV_DIR for hints
+
 if (USE_STATIC_LIBS)
-  find_library(LibUV_LIBRARY NAMES uv_a HINTS ${LibUV_DIR} ${LibUV_DIR}/lib)
+  find_library(LibUV_LIBRARY NAMES uv_a uv HINTS ${LibUV_DIR} ${LibUV_DIR}/lib ${LIBUV_DIR} ${LIBUV_DIR}/lib)
 else()
-  find_library(LibUV_LIBRARY NAMES uv HINTS ${LibUV_DIR} ${LibUV_DIR}/lib)
+  find_library(LibUV_LIBRARY NAMES uv uv_a HINTS ${LibUV_DIR} ${LibUV_DIR}/lib ${LIBUV_DIR} ${LIBUV_DIR}/lib)
 endif()
 mark_as_advanced(LibUV_LIBRARY)
 
-find_path(LibUV_INCLUDE_DIR NAMES uv.h HINTS ${LibUV_DIR}/include)
+find_path(LibUV_INCLUDE_DIR NAMES uv.h HINTS ${LibUV_DIR}/include ${LIBUV_DIR}/include)
 mark_as_advanced(LibUV_INCLUDE_DIR)
 
 if(WIN32)
