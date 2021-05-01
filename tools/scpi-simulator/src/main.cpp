@@ -26,6 +26,7 @@ const int INPUT_BUFFER_LENGTH = 2048;
 
 const std::string ID = "SCPI simulator";
 const std::string QueryIDN ="*IDN?";
+const std::string SendLongString ="SEND_LONG_STRING";
 
 std::string remove_whitespace(std::string input)
 {
@@ -58,6 +59,15 @@ void session(socket_ptr sock)
             if (input == QueryIDN)
             {
                 response=ID;
+                goto respond;
+            }
+
+            if (input == SendLongString)
+            {
+                std::string s;
+                for (int i=0; i < 2010; i++)
+                    s = s + "0";
+                response=s;
                 goto respond;
             }
 

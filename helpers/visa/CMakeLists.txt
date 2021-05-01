@@ -1,7 +1,5 @@
-set(TARGET "devices")
+set(TARGET "helper-visa")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
-
-#find_package(Libuv REQUIRED)
 
 ##
 ## Source files
@@ -29,12 +27,11 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-    uv
-    wise_enum
-    common
-  PRIVATE
+    VISA
     udaq
-)
+  PRIVATE
+    common
+  )
 
 ##
 ## Compiler flags

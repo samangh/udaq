@@ -34,7 +34,7 @@ target_link_libraries(${TARGET}
    LabVIEW
    $<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>
   PRIVATE
-    devices
+    safibra
     common
     "$<$<BOOL:${APPLE}>:-framework CoreFoundation>"
 	)

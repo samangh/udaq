@@ -32,6 +32,7 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     VISA
+    helper-visa
   )
 
 setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})

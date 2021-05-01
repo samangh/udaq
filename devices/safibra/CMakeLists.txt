@@ -1,4 +1,4 @@
-set(TARGET "c-wrapper")
+set(TARGET "safibra")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
 #find_package(Libuv REQUIRED)
@@ -12,9 +12,7 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-# This MUST be a shared library, as otherwise you can't export from it
-# See https://devblogs.microsoft.com/oldnewthing/20140321-00/?p=1433
-add_library(${TARGET} SHARED ${SRC_FILES})
+add_library(${TARGET} ${SRC_FILES})
 
 ##
 ## Includes
@@ -25,22 +23,18 @@ target_include_directories(${TARGET}
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
   PRIVATE
   )
 
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
+    uv
+    wise_enum
+    common
   PRIVATE
-    safibra
-    common)
-
-include (GenerateExportHeader)
-generate_export_header(${TARGET}
-             EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export/${TARGET}.h")
-
-setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})
+    udaq
+)
 
 ##
 ## Compiler flags

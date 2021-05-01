@@ -98,9 +98,11 @@ add_subdirectory(external_cmake_wrappers/wise_enum)
 add_subdirectory(external_cmake_wrappers/imgui-filebrowser)
 
 add_subdirectory(helpers/imgui)
+add_subdirectory(helpers/visa)
 
 add_subdirectory(common)
-add_subdirectory(devices)
+
+add_subdirectory(devices/safibra)
 
 add_subdirectory(wrappers/c)
 if(LABVIEW_SUPPORT)

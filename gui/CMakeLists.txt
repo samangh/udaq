@@ -32,11 +32,11 @@ target_link_libraries(${TARGET}
   PRIVATE
     imgui
     implot
-    devices
     common
     fmt::fmt
     imgui-filebrowser
     imgui-helper
+    wampcc
   )
 
 ##

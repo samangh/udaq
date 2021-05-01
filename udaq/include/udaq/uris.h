@@ -5,12 +5,12 @@
 
 namespace udaq::uris {
 
-const udaq::uri_t DEVICE_CONNECT = "connect";
-const udaq::uri_t DEVICE_DISCONNECT = "disconnect";
-const udaq::uri_t DEVICE_INITIALISE = "initilaise";
-const udaq::uri_t DEVICE_CLEAR = "clear";
-const udaq::uri_t DEVICE_IS_CONNECTED = "is_connected";
-const udaq::uri_t DEVICE_LIST_MEASUREMENTS = "list_measurements";
-const udaq::uri_t DEVICE_LIST_ACTIONS = "list_measurements";
+const udaq::uri_t DEVICE_CONNECT = "CONNECT";
+const udaq::uri_t DEVICE_DISCONNECT = "DISCONNECT";
+const udaq::uri_t DEVICE_INITIALISE = "INITIALISE";
+const udaq::uri_t DEVICE_CLEAR = "CLEAR";
+const udaq::uri_t DEVICE_IS_CONNECTED = "IS_CONNECTED";
+const udaq::uri_t DEVICE_LIST_MEASUREMENTS = "LIST_MEASUREMENTS";
+const udaq::uri_t DEVICE_LIST_ACTIONS = "LIST_ACTIONS";
 
 } // namespace udaq::udaq
