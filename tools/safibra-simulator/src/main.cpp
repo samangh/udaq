@@ -1,22 +1,13 @@
-// blocking_tcp_echo_server.cpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-
-// Modified by S. Ghannadzadeh
-
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 
 #include <cstdlib>
 #include <iostream>
 #include <string>
+
 #include <boost/bind.hpp>
-#include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+
 #include <thread>
 #include <chrono>
 
@@ -63,7 +54,7 @@ void write_data(boost::asio::ip::tcp::socket& socket)
     /* i is sequenc number */
     for (int i = 0; ; ++i)
     {
-        std::this_thread::sleep_for(1us);
+        std::this_thread::sleep_for(500us);
         for (std::string sensor_id : {"sensor0", "sensor1", "sensor2", "sensor3", "sensor4", "sensor5", "sensor6"})
         {
             std::string device_id = "simulated_device0";
@@ -137,7 +128,7 @@ int main(int argc, char* argv[])
         socket.close();
 
     }
-    catch (std::exception& e)
+    catch (const std::exception& e)
     {
         std::cerr << "Exception: " << e.what() << "\n";
     }
