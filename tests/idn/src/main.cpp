@@ -25,10 +25,11 @@ const std::string IDN = "*IDN?";
 
 int main(void)
 {
-    auto viInstr = udaq::visa::visa_instrument();
+    auto viInstr = udaq::visa::visa_comm_driver();
+
     viInstr.connect("TCPIP0::127.0.0.1::5020::SOCKET");
     viInstr.write(IDN);
-    std::cout << viInstr.read().length() << std::endl;
+    std::cout << viInstr.read() << std::endl;
     viInstr.disconnect();
 
     return 0;
