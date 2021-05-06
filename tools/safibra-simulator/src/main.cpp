@@ -20,7 +20,12 @@
 using boost::asio::ip::tcp;
 static std::atomic<bool> async_writing_in_progress;
 static boost::asio::io_service io_service;
+
 static std::vector<unsigned char> buffer;
+static std::vector<unsigned char> buffer_async;
+#ifdef _WIN32
+#include <timeapi.h>
+#endif
 
 uint32_t compute_checksum(std::vector<unsigned char>& message, int message_size) {
     uint32_t *p = (uint32_t *)(&message[0]);
@@ -51,7 +56,7 @@ void add_to_byte_array(std::vector<uint8_t>& array, double to_add)
 void asio_work_done(const boost::system::error_code& ec, std::size_t bytes_transferred)
 {
     async_writing_in_progress = false;
-    buffer.clear();
+    buffer_async.clear();
 
     if (ec.failed())
         throw std::runtime_error(ec.message());
@@ -68,7 +73,7 @@ void write_data(boost::asio::ip::tcp::socket& socket)
     /* i is sequenc number */
     for (int i = 0; ; ++i)
     {
-        std::this_thread::sleep_for(500us);
+        std::this_thread::sleep_for(8ms);
         for (std::string sensor_id : {"sensor0", "sensor1", "sensor2", "sensor3", "sensor4", "sensor5", "sensor6"})
         {
             std::string device_id = "simulated_device0";
@@ -119,7 +124,9 @@ void write_data(boost::asio::ip::tcp::socket& socket)
         if (!async_writing_in_progress)
         {
             async_writing_in_progress = true;
-            boost::asio::async_write(socket, boost::asio::buffer(buffer), &asio_work_done);
+            buffer_async.insert(buffer_async.end(), buffer.begin(), buffer.end());
+            buffer.clear();
+            boost::asio::async_write(socket, boost::asio::buffer(buffer_async), &asio_work_done);
             io_service.restart();
             io_service.run_one();            
         }
@@ -131,6 +138,10 @@ void write_data(boost::asio::ip::tcp::socket& socket)
 
 int main(int argc, char* argv[])
 {
+    #ifdef  _WIN32
+        timeBeginPeriod(1);
+    #endif
+
     try
     {
         if (argc != 3)
@@ -155,6 +166,10 @@ int main(int argc, char* argv[])
     {
         std::cerr << "Exception: " << e.what() << "\n";
     }
+
+#ifdef  _WIN32
+    timeEndPeriod(1);
+#endif
 
     return 0;
 }

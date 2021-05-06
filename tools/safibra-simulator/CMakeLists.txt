@@ -36,6 +36,7 @@ target_link_libraries(${TARGET}
     Boost::thread
     VISA
     common
+    $<$<BOOL:${WIN32}>:Winmm>
     )
 
 setup_ide_folders(TARGET ${TARGET} DIR ${CMAKE_CURRENT_SOURCE_DIR})
