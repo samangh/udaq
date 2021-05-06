@@ -258,10 +258,11 @@ int main(int, char**)
         error_message = message;
     };
 
+    std::atomic<bool> data_available = false;
+
     auto on_data_available =
-        [&](std::vector<udaq::devices::safibra::SensorReadout> data_in) {
-            std::unique_lock lock(mutex_);
-            add_fbg_data(path, data, data_in, on_file_error);
+        [&]() {
+        data_available = true;
     };
 
 
@@ -269,11 +270,12 @@ int main(int, char**)
     //std::thread t(do_work, std::ref(xs), std::ref(y), std::ref(abort), std::ref(mutex_));
     auto client = udaq::devices::safibra::SigprogServer(
         on_error, on_client_connected, on_client_disconnected,
-        on_server_started, on_server_stopped, nullptr);
+        on_server_started, on_server_stopped, on_data_available);
 
     ImGui::FileBrowser fileDialog(ImGuiFileBrowserFlags_SelectDirectory|ImGuiFileBrowserFlags_CreateNewDir|ImGuiFileBrowserFlags_CloseOnEsc);
 
     while (!done)
+
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -398,7 +400,7 @@ int main(int, char**)
                     if (fbg.size() > 100)
                     {
                         ImGui::SameLine();
-                        ImGui::Text("Average rate: %.1f Hz", 100.0 / (fbg.time().back() - fbg.time()[fbg.size()-100] ));
+                        ImGui::Text("Average rate: %.1f Hz", fbg.time().size() / (fbg.time().back() - fbg.time().front() ));
                     }
 
                     ImPlot::SetNextPlotLimits(fbg.time_minmax().minimum, fbg.time_minmax().maximum,
@@ -457,6 +459,10 @@ int main(int, char**)
                 ImGui::EndPopup();
             }
         }
+
+
+        if (data_available)
+            add_fbg_data(path, data, client.get_data_buffer(), on_file_error);
 
         // Rendering
         ImGui::Render();
