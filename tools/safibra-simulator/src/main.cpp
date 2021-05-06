@@ -15,8 +15,12 @@
 #include <bytes.h>
 
 #include <cmath>
+#include <atomic>
 
 using boost::asio::ip::tcp;
+static std::atomic<bool> async_writing_in_progress;
+static boost::asio::io_service io_service;
+static std::vector<unsigned char> buffer;
 
 uint32_t compute_checksum(std::vector<unsigned char>& message, int message_size) {
     uint32_t *p = (uint32_t *)(&message[0]);
@@ -44,12 +48,22 @@ void add_to_byte_array(std::vector<uint8_t>& array, double to_add)
     array.insert(array.end(), bytes.begin(), bytes.end());
 }
 
+void asio_work_done(const boost::system::error_code& ec, std::size_t bytes_transferred)
+{
+    async_writing_in_progress = false;
+    buffer.clear();
+
+    if (ec.failed())
+        throw std::runtime_error(ec.message());
+}
+
 void write_data(boost::asio::ip::tcp::socket& socket)
 {
     using namespace std::chrono_literals;
 
     /* number of readouts per packet*/
     int n = 20;
+    bool io_started = false;
 
     /* i is sequenc number */
     for (int i = 0; ; ++i)
@@ -99,9 +113,19 @@ void write_data(boost::asio::ip::tcp::socket& socket)
             }
 
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
-
-            boost::asio::write(socket, boost::asio::buffer(saf_header));
+            buffer.insert(buffer.end(), saf_header.begin(), saf_header.end());
         }
+
+        if (!async_writing_in_progress)
+        {
+            async_writing_in_progress = true;
+            boost::asio::async_write(socket, boost::asio::buffer(buffer), &asio_work_done);
+            io_service.restart();
+            io_service.run_one();            
+        }
+
+
+
     }
 }
 
@@ -120,7 +144,6 @@ int main(int argc, char* argv[])
 
         boost::asio::ip::tcp::endpoint endpoint(host, port);
 
-        boost::asio::io_service io_service;
         boost::asio::ip::tcp::socket socket(io_service);
 
         socket.connect(endpoint);
