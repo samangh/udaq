@@ -23,14 +23,13 @@ void on_error(const char* msg) {
 
 void analyse(safibra_packet_buffer buffer)
 {
-    for (int i = 0; i < buffer.length; i++)
+    for (size_t i = 0; i < buffer.length; i++)
     {
-        printf("device_id: %s\n", buffer.packets[i].device_id);
-        printf("  sensor_id: %s\n", buffer.packets[i].sensor_id);
-        for (int k=0; k < buffer.packets[i].length; k++)
+        int last_index =  buffer.packets[i].length -1;
+        printf("average interval in packet: %lf\n",(buffer.packets[i].time[last_index]-buffer.packets[i].time[0])/buffer.packets[i].length);
+
+        for (size_t k=0; k < buffer.packets[i].length; k++)
         {
-            printf("    time: %f\n", buffer.packets[i].time[k]);
-            printf("    wavelength: %f\n", buffer.packets[i].readouts[k]);
         }
     }
     safibra_free_buffer(buffer);
@@ -44,8 +43,11 @@ int main(void)
 {
     safibra_client client = safibra_create_client(on_error, empty, empty, empty, empty, empty);
     safibra_start(client, 5555);
-    sleep(5000);
-    analyse(safibra_get_buffer(client));
+    while (true)
+    {
+        if (safibra_number_of_clients(client)>0)
+            analyse(safibra_get_buffer(client));
+    }
     safibra_is_running(client);
     safibra_free_client(client);
     return 0;

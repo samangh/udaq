@@ -16,6 +16,8 @@
 
 #include <cmath>
 #include <atomic>
+#include <udaq/common/accurate_sleeper.h>
+#include <vector>
 
 using boost::asio::ip::tcp;
 static std::atomic<bool> async_writing_in_progress;
@@ -23,9 +25,6 @@ static boost::asio::io_service io_service;
 
 static std::vector<unsigned char> buffer;
 static std::vector<unsigned char> buffer_async;
-#ifdef _WIN32
-#include <timeapi.h>
-#endif
 
 uint32_t compute_checksum(std::vector<unsigned char>& message, int message_size) {
     uint32_t *p = (uint32_t *)(&message[0]);
@@ -68,12 +67,30 @@ void write_data(boost::asio::ip::tcp::socket& socket)
 
     /* number of readouts per packet*/
     int n = 20;
-    bool io_started = false;
 
-    /* i is sequenc number */
+    /* Set rate to 125 Hz */
+    udaq::common::AccurateSleeper sleeper;
+    sleeper.set_interval(8ms);
+
+    /* i is sequence number */
     for (int i = 0; ; ++i)
     {
-        std::this_thread::sleep_for(8ms);
+        std::vector<uint64_t> seconds;
+        std::vector<uint64_t> microseconds;
+        std::vector<double> wavelengths;
+
+        for (int k = 0; k < n; ++k)
+        {
+            sleeper.sleep();
+            auto t = std::chrono::high_resolution_clock::now().time_since_epoch();
+            auto seconds_ = std::chrono::duration_cast<std::chrono::seconds>(t).count();
+            auto microseconds_ = std::chrono::duration_cast<std::chrono::microseconds>(t).count() % 1000000;
+
+            seconds.push_back(seconds_);
+            microseconds.push_back(microseconds_);
+            wavelengths.push_back(sin(std::chrono::duration_cast<std::chrono::microseconds>(t).count() * 1E-6 * 3.14 /5));
+        }
+
         for (std::string sensor_id : {"sensor0", "sensor1", "sensor2", "sensor3", "sensor4", "sensor5", "sensor6"})
         {
             std::string device_id = "simulated_device0";
@@ -104,17 +121,11 @@ void write_data(boost::asio::ip::tcp::socket& socket)
             add_to_byte_array(saf_header, (uint32_t)packet_size);
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, 80));
 
-            for (int k = 0; k < n; ++k)
+            for (size_t k = 0; k < seconds.size(); k++)
             {
-                auto t = std::chrono::system_clock::now().time_since_epoch();
-                auto seconds = std::chrono::duration_cast<std::chrono::seconds>(t).count();
-                auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
-                auto ms_safira = 1E3 * (milliseconds - (seconds * 1E3));
-
-                add_to_byte_array(saf_header, (uint64_t)seconds);
-                add_to_byte_array(saf_header, (uint64_t)ms_safira);
-
-                add_to_byte_array(saf_header, sin(milliseconds * 1E-3 * 3.14 / 60) + 0.1 * sin(milliseconds * 1E-3 * 3.14));
+                add_to_byte_array(saf_header, (uint64_t)seconds[k]);
+                add_to_byte_array(saf_header, (uint64_t)microseconds[k]);
+                add_to_byte_array(saf_header, wavelengths[k]);
             }
 
             add_to_byte_array(saf_header, (uint32_t)compute_checksum(saf_header, packet_size));
@@ -138,10 +149,6 @@ void write_data(boost::asio::ip::tcp::socket& socket)
 
 int main(int argc, char* argv[])
 {
-    #ifdef  _WIN32
-        timeBeginPeriod(1);
-    #endif
-
     try
     {
         if (argc != 3)
@@ -166,10 +173,5 @@ int main(int argc, char* argv[])
     {
         std::cerr << "Exception: " << e.what() << "\n";
     }
-
-#ifdef  _WIN32
-    timeEndPeriod(1);
-#endif
-
     return 0;
 }
