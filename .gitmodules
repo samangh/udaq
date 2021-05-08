@@ -14,3 +14,7 @@
 	path = external/imgui-filebrowser
 	url = https://github.com/AirGuanZ/imgui-filebrowser.git
 	branch = master
+[submodule "external/cli11"]
+	path = external/cli11
+	url = https://github.com/CLIUtils/CLI11.git
+	branch = master
