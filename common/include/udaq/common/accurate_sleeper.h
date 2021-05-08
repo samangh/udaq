@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <atomic>
 
 namespace udaq::common {
 
@@ -23,6 +24,9 @@ class AccurateSleeper {
 
   private:
     uint64_t m_interval_ns;
+#ifdef _WIN32
+    std::atomic<bool> m_time_period_set =false;
+#endif
 };
 
 } // namespace udaq::common

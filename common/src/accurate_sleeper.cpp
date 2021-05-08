@@ -13,12 +13,18 @@
 udaq::common::AccurateSleeper::AccurateSleeper() {
 #ifdef  _WIN32
     timeBeginPeriod(1);
+    m_time_period_set=true;
 #endif
 }
 udaq::common::AccurateSleeper::~AccurateSleeper(){
 #ifdef  _WIN32
-    timeEndPeriod(1);
+    if (m_time_period_set)
+        timeEndPeriod(1);
 #endif
+}
+
+void udaq::common::AccurateSleeper::set_interval(uint32_t interval_ns) {
+    m_interval_ns = interval_ns;
 }
 
 void udaq::common::AccurateSleeper::sleep() {
