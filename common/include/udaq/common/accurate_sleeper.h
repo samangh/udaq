@@ -19,7 +19,7 @@ class AccurateSleeper {
             set_interval(a);
         }
     }
-    void set_interval(uint32_t interval_ns) { m_interval_ns = interval_ns; }
+    void set_interval(uint32_t interval_ns);
     void sleep();
 
   private:
