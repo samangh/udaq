@@ -38,7 +38,7 @@ void udaq::common::AccurateSleeper::sleep() {
     while (nanosleep(&ts, &ts) == -1 && errno == EINTR);
     //pselect(0, NULL, NULL, NULL, &ts, NULL);
 #elif defined(_WIN32)
-    auto milliseconds = (DWORD)m_interval_ns * 1000000;
+    auto milliseconds = (DWORD)m_interval_ns / 1000000;
     Sleep(milliseconds);
 #endif
 }
