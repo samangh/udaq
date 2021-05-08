@@ -36,6 +36,7 @@ target_link_libraries(${TARGET}
     Boost::thread
     VISA
     common
+    CLI11::CLI11
     $<$<BOOL:${WIN32}>:Winmm>
     )
 
