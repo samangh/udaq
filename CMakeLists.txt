@@ -32,6 +32,12 @@ endif()
 option (LABVIEW_SUPPORT "Build with LabVIEW support" OFF)
 
 ##
+## CMake module paths
+##
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+##
 ## Compile support
 ##
 
@@ -40,16 +46,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ##
-## CMake module paths
-##
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-
-##
 ## Import functions
 ##
 
 include(setup_ide_folders)
+include(get_standard_library_name)
+
+# Check for name of standard library, use by common
+include(CheckCXXSourceCompiles)
+get_standard_library_name(STANDARD_LIBRARY)
 
 ##
 ## Packages
