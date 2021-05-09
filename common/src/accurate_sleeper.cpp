@@ -1,6 +1,7 @@
 #include "udaq/common/accurate_sleeper.h"
 
 #include <stdexcept>
+#include <string>
 #include <string.h>
 
 #ifdef _WIN32
@@ -42,12 +43,12 @@ void udaq::common::AccurateSleeper::enable_realtime()
         if (pthread_getschedparam(m_thread, m_previous_policy.get(), m_previous_param.get()) !=0 )
                 throw std::runtime_error(std::string("Unable to get the current thread scheduling parameters, ") + strerror(errno));
 
-        /* Set realtime priority to minimum */
+        /* Set realtime priority to minimum+1 */
         struct sched_param param;
 #ifdef __linux__
-        param.sched_priority= sched_get_priority_min(SCHED_FIFO);
+        param.sched_priority= sched_get_priority_min(SCHED_FIFO)+1;
 #else
-        param.sched_priority= PTHREAD_MIN_PRIORITY;
+        param.sched_priority= 2;
 #endif
 
         /* Set the scheduler using POSIX thread */
