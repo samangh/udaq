@@ -50,7 +50,7 @@ void asio_work_done(const boost::system::error_code& ec, std::size_t)
     async_writing_in_progress = false;
     buffer_async.clear();
 
-    if (ec.failed())
+    if (ec.value() != 0)
         throw std::runtime_error(ec.message());
 }
 
