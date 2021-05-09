@@ -78,7 +78,6 @@ void udaq::common::AccurateSleeper::enable_realtime()
             throw std::runtime_error(std::string("Unable to enable real-time scheduling, ") + strerror(errno));
 #elif defined(_WIN32)
         timeBeginPeriod(1);
-        m_realtime_enabled=true;
 #endif
 
         m_realtime_enabled=true;
@@ -94,10 +93,8 @@ void udaq::common::AccurateSleeper::disable_realtime()
         if (pthread_setschedparam(m_thread, *(m_previous_policy.get()), m_previous_param.get()) !=0)
             throw std::runtime_error(std::string("Unable to disable real-time scheduling, ") + strerror(errno));
 #elif defined(_WIN32)
-        if (m_time_period_set)
-            timeEndPeriod(1);
+        timeEndPeriod(1);
 #endif
-
         m_realtime_enabled=false;
     }
 }
