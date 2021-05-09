@@ -54,12 +54,12 @@ void asio_work_done(const boost::system::error_code& ec, std::size_t)
         throw std::runtime_error(ec.message());
 }
 
-void write_data(boost::asio::ip::tcp::socket& socket, int readings_per_packet, int no_sensors, double sample_rate)
+void write_data(boost::asio::ip::tcp::socket& socket, int readings_per_packet, int no_sensors, double sample_rate, udaq::common::AccurateSleeper::Strategy strategy)
 {
     /* Set rate */
     int internval_ns =  1E9 / sample_rate;
     udaq::common::AccurateSleeper sleeper;
-    sleeper.set_interval(internval_ns);
+    sleeper.set_interval(internval_ns, strategy);
 
     std::vector<std::string> sensor_names;
     for (int i=0; i < no_sensors; i++)
@@ -146,14 +146,18 @@ int main(int argc, char* argv[])
     unsigned int port;
     unsigned int no_sensors;
     double sample_rate;
+    bool accurate_rate=false;
 
     app.add_option("--ip", ip, "IP address to stream data to")->required();
     app.add_option("--port", port, "port number to connect to")->required();
     app.add_option("--sensors", no_sensors, "number of sensors to simulate")->default_val(6);
     app.add_option("--readings-per-packet", readings_per_packet, "number of redings per packet for a single FBG")->default_val(10);
     app.add_option("--rate", sample_rate, "sample rate in Hz (approximate)")->default_val(125);
+    app.add_flag("--exact-rate", accurate_rate, "Ensure the specified sample rate (will use CPU on tight loop)");
 
     CLI11_PARSE(app, argc, argv);
+
+    auto strategy = accurate_rate? udaq::common::AccurateSleeper::Strategy::Spin : udaq::common::AccurateSleeper::Strategy::Sleep;
 
     try
     {
@@ -162,7 +166,8 @@ int main(int argc, char* argv[])
         boost::asio::ip::tcp::socket socket(io_service);
 
         socket.connect(endpoint);
-        write_data(socket, readings_per_packet, no_sensors, sample_rate);
+
+        write_data(socket, readings_per_packet, no_sensors, sample_rate, strategy);
         socket.close();
     }
     catch (const std::exception& e)

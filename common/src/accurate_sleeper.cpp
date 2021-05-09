@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <string.h>
+#include <chrono>
 
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
@@ -23,8 +24,29 @@ udaq::common::AccurateSleeper::~AccurateSleeper(){
     disable_realtime();
 }
 
-void udaq::common::AccurateSleeper::set_interval(uint32_t interval_ns) {
-    enable_realtime();
+void udaq::common::AccurateSleeper::set_interval(uint32_t interval_ns, Strategy strategy) {
+    if ( strategy == Strategy::Auto)
+    {
+        /* Use tight loop if period is 1 ms or less */
+        uint32_t sleep_limit;
+#ifdef _WIN32
+        sleep_limit = 1000000; // 2 ms
+#else
+     sleep_limit = 1000000; // 1 ms
+#endif
+        if (interval_ns > 1000000)
+            m_strategy = Strategy::Sleep;
+        else
+            m_strategy = Strategy::Spin;
+    }
+    else
+        m_strategy = strategy;
+
+    if (m_strategy == Strategy::Sleep)
+        disable_realtime();
+    else
+        enable_realtime();
+
     m_interval_ns = interval_ns;
 }
 
@@ -81,6 +103,18 @@ void udaq::common::AccurateSleeper::disable_realtime()
 }
 
 void udaq::common::AccurateSleeper::sleep() {
+    if (m_interval_ns ==0)
+        return;
+
+    /* Tight loop */
+    if (m_strategy == Strategy::Spin)
+    {
+        auto s = std::chrono::high_resolution_clock::now();
+        while ((std::chrono::high_resolution_clock::now()-s)<std::chrono::nanoseconds(m_interval_ns));
+        return;
+    }
+
+    /* Wait mode */
 #if defined(__linux__) || defined(__unix__) ||                                 \
     (defined(__APPLE__) && defined(__MACH__))
     struct timespec ts;
@@ -94,4 +128,5 @@ void udaq::common::AccurateSleeper::sleep() {
     auto milliseconds = (DWORD)m_interval_ns / 1000000;
     Sleep(milliseconds);
 #endif
+
 }
