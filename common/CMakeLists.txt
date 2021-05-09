@@ -1,6 +1,9 @@
 set(TARGET "common")
 set_property(GLOBAL APPEND PROPERTY ${PROJECT_NAME}_TARGETS ${TARGET})
 
+
+find_package(Threads REQUIRED)
+
 ##
 ## Source files
 ##
@@ -32,6 +35,7 @@ target_link_libraries(${TARGET}
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.1>>:${STANDARD_LIBRARY}fs>
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:${STANDARD_LIBRARY}fs>
   PRIVATE
+    Threads::Threads
   )
 
 include (GenerateExportHeader)
