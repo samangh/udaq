@@ -4,6 +4,7 @@
 #include <string>
 #include <string.h>
 #include <chrono>
+#include <iostream>
 
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
@@ -74,8 +75,13 @@ void udaq::common::AccurateSleeper::enable_realtime()
 #endif
 
         /* Set the scheduler using POSIX thread */
-        if (pthread_setschedparam(m_thread, SCHED_FIFO, &param) !=0)
-            throw std::runtime_error(std::string("Unable to enable real-time scheduling, ") + strerror(errno));
+        int result = pthread_setschedparam(m_thread, SCHED_FIFO, &param);
+        if (result!=0)
+        {
+            if (result==EPERM)
+                std::cerr << "Unable to enable real-time scheduling due to inadequate premissions. If in Linux, use \"sudo setcap 'cap_sys_nice=eip' <program>\" to fix this." <<std::endl;
+            throw std::runtime_error(std::string("Unable to enable real-time scheduling, ") + strerror(result));
+        }
 #elif defined(_WIN32)
         timeBeginPeriod(1);
 #endif
