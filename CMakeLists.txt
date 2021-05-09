@@ -66,8 +66,10 @@ find_package(VISA REQUIRED)
 
 find_package(wampcc REQUIRED)
 if (TARGET wampcc::wampcc_static AND USE_STATIC_LIBS)
+  set_target_properties(wampcc::wampcc_static PROPERTIES IMPORTED_GLOBAL TRUE)
   add_library(wampcc ALIAS wampcc::wampcc_static)
 else()
+  set_target_properties(wampcc::wampcc_shared PROPERTIES IMPORTED_GLOBAL TRUE)
   add_library(wampcc ALIAS wampcc::wampcc_shared)
 endif()
 
