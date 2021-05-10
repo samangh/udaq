@@ -97,7 +97,8 @@ void udaq::common::AccurateSleeper::disable_realtime()
 #if defined(__linux__) || defined(__unix__) ||                                 \
     (defined(__APPLE__) && defined(__MACH__))
         if (pthread_setschedparam(m_thread, *(m_previous_policy.get()), m_previous_param.get()) !=0)
-            throw std::runtime_error(std::string("Unable to disable real-time scheduling, ") + strerror(errno));
+            if (errno != ESRCH) //Ignore ESRCH error, as that means that the thread was already finished
+                throw std::runtime_error(std::string("Unable to disable real-time scheduling, ") + strerror(errno));
 #elif defined(_WIN32)
         timeEndPeriod(1);
 #endif
