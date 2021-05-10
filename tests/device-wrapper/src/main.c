@@ -25,7 +25,7 @@ void analyse(safibra_packet_buffer buffer)
 {
     for (size_t i = 0; i < buffer.length; i++)
     {
-        int last_index =  buffer.packets[i].length -1;
+        size_t last_index =  buffer.packets[i].length -1;
         printf("average interval in packet: %lf\n",(buffer.packets[i].time[last_index]-buffer.packets[i].time[0])/buffer.packets[i].length);
 
         for (size_t k=0; k < buffer.packets[i].length; k++)

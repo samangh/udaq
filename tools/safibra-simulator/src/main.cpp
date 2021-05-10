@@ -57,7 +57,7 @@ void asio_work_done(const boost::system::error_code& ec, std::size_t)
 void write_data(boost::asio::ip::tcp::socket& socket, int readings_per_packet, int no_sensors, double sample_rate, udaq::common::AccurateSleeper::Strategy strategy)
 {
     /* Set rate */
-    int internval_ns =  1E9 / sample_rate;
+    int internval_ns =  static_cast<int>(1E9 / sample_rate); //cast to silent compiler warning
     udaq::common::AccurateSleeper sleeper;
     sleeper.set_interval(internval_ns, strategy);
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 
     unsigned int readings_per_packet;
     std::string ip;
-    unsigned int port;
+    unsigned short port;
     unsigned int no_sensors;
     double sample_rate;
     bool accurate_rate=false;

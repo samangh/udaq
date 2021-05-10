@@ -25,7 +25,7 @@ bool InputText(const char *label, std::string &str, ImGuiInputTextFlags flags)
 
 bool InputUInt32(const char *label, uint32_t& v, ImGuiInputTextFlags flags)
 {
-    return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v,  NULL, NULL, "%u", flags);
+    return ImGui::InputScalar(label, ImGuiDataType_U32, static_cast<void*>(&v),  NULL, NULL, "%u", flags);
 }
 
 void disable_item(bool visible, std::function<void ()> func)
