@@ -44,14 +44,14 @@ private:
     std::thread m_thread;
     std::shared_mutex m_mutex;          /* Mutex for getting data*/
 
-    int m_number_of_connected_clients;
-
     on_error_cb_t m_on_error_cb; /* Called in case of errors after connect(...) */
     on_client_connected_cb_t m_on_client_connected_cb;
     on_client_disconnected_cb_t m_on_client_disconnected_cb;
     on_start_cb_t m_on_start_cb;
     on_stop_cb_t m_on_stop_cb;
     on_data_available_cb_t m_on_data_available;
+
+    int m_number_of_connected_clients;
 
     std::unique_ptr<uv_tcp_t> m_sock; /* Socket used for connection */
     std::unique_ptr<uv_connect_t> m_conn; /* UV connection object */
