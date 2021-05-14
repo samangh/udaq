@@ -32,10 +32,10 @@ void file_writer::on_uv_timer_tick(uv_idle_t* handle) {
 
 			auto size = a->m_buffer_out->size();
 			auto buff_ptr = &(*a->m_buffer_out.get())[0];
-			a->m_uv_buf = uv_buf_init(buff_ptr, size);
+			a->m_uv_buf = uv_buf_init(buff_ptr, static_cast<unsigned int>(size));
 
 			a->m_write_pending = true;
-			uv_fs_write(&a->m_loop, &a->write_req, a->open_req.result, &a->m_uv_buf, 1, -1, on_uv_on_write);
+			uv_fs_write(&a->m_loop, &a->write_req, static_cast<uv_file>(a->open_req.result), &a->m_uv_buf, 1, -1, on_uv_on_write);
 
 			return;
 		}
@@ -46,7 +46,7 @@ void file_writer::on_uv_timer_tick(uv_idle_t* handle) {
     std::shared_lock lock(a->m_stop_mutex);
     if (a->m_stop_requested)
     {
-        uv_fs_close(&a->m_loop, &a->close_req, a->open_req.result, &file_writer::on_uv_on_file_close);
+        uv_fs_close(&a->m_loop, &a->close_req, static_cast<uv_file>(a->open_req.result), &file_writer::on_uv_on_file_close);
         uv_idle_stop(handle);
         uv_stop(&a->m_loop);
     }
@@ -161,7 +161,7 @@ void file_writer::on_uv_open(uv_fs_t *req)
     auto a = (file_writer*)req->loop->data;
 
     if (res < 0) {
-        a->on_error(uv_strerror(res));
+        a->on_error(uv_strerror(static_cast<int>(res)));
         return;
     }
 
@@ -172,23 +172,23 @@ void file_writer::on_uv_open(uv_fs_t *req)
 
 void file_writer::on_uv_on_write(uv_fs_t *req)
 {
-    int res = req->result;
+    auto res = req->result;
     uv_fs_req_cleanup(req);
 
     auto a = (file_writer*)req->loop->data;
     a->m_write_pending = false;
     if (res < 0)
-        a->on_error(uv_strerror(res));
+        a->on_error(uv_strerror(static_cast<int>(res)));
 }
 
 void file_writer::on_uv_on_file_close(uv_fs_t *req)
 {
-    int res = req->result;
+    auto res = req->result;
     uv_fs_req_cleanup(req);
 
     auto a = (file_writer*)req->loop->data;
     if (res < 0)
-        a->on_error(uv_strerror(res));
+        a->on_error(uv_strerror(static_cast<int>(res)));
 }
 
 }
