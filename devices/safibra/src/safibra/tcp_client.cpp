@@ -115,12 +115,12 @@ void safibra_tcp_client::stop()
         m_thread.join();
 }
 
-bool safibra_tcp_client::is_running()
+bool safibra_tcp_client::is_running() const
 {
     return m_thread.joinable()  && (uv_loop_alive(&m_loop) != 0);
 }
 
-int safibra_tcp_client::number_of_clients()
+int safibra_tcp_client::number_of_clients() const
 {
     std::shared_lock lock(m_mutex);
     return  m_number_of_connected_clients;

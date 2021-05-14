@@ -36,11 +36,11 @@ void udaq::devices::safibra::SigprogServer::start(const int port) {
 
 void udaq::devices::safibra::SigprogServer::stop() { m_client->stop(); }
 
-int udaq::devices::safibra::SigprogServer::number_of_clients() {
+int udaq::devices::safibra::SigprogServer::number_of_clients() const {
     return m_client->number_of_clients();
 }
 
-bool udaq::devices::safibra::SigprogServer::is_running() {
+bool udaq::devices::safibra::SigprogServer::is_running() const {
     return m_client->is_running();
 }
 

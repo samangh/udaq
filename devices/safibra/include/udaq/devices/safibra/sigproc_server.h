@@ -31,9 +31,9 @@ class SigprogServer {
     std::vector<SensorReadout> get_data_buffer();
     void start(const int port);
     void stop();
-    bool is_running();
-    int number_of_clients();
   private:
+    bool is_running() const;
+    int number_of_clients() const;
     void on_data_available_cb_from_tcp(const uint8_t*, size_t length);
     
     on_data_available_cb_t m_on_data_available_cb;

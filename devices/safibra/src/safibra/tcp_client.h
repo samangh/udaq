@@ -29,8 +29,8 @@ public:
                        on_data_available_cb_t on_data_available_cb);
     void start(const int port);
     void stop();
-    bool is_running();
-    int  number_of_clients();
+    bool is_running() const;
+    int  number_of_clients() const;
     ~safibra_tcp_client();
 
 private:
@@ -42,7 +42,7 @@ private:
 
     uv_loop_t m_loop;
     std::thread m_thread;
-    std::shared_mutex m_mutex;          /* Mutex for getting data*/
+    mutable std::shared_mutex m_mutex;          /* Mutex for getting data*/
 
     on_error_cb_t m_on_error_cb; /* Called in case of errors after connect(...) */
     on_client_connected_cb_t m_on_client_connected_cb;
