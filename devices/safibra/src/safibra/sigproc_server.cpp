@@ -44,6 +44,19 @@ bool udaq::devices::safibra::SigprogServer::is_running() const {
     return m_client->is_running();
 }
 
+uint32_t udaq::devices::safibra::SigprogServer::compute_checksum(const unsigned char *buffer, size_t message_size) {
+    uint32_t* p = (uint32_t*)(buffer);
+
+    //Sum until the last byte of the header
+    auto count = (message_size) / 4 - 1;
+
+    uint32_t sum = 0;
+    for (size_t i = 0; i < count; ++i)
+        sum += p[i];
+
+    return sum;
+}
+
 void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
     const uint8_t *buff, size_t length) {
     using namespace udaq::common::bytes;
@@ -74,6 +87,8 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
             if (m_stream_buffer.size() - msg_pos < HEADER_LENGTH)
                 break;
             Header header(m_stream_buffer, msg_pos);
+            if (header.checksum != compute_checksum(&m_stream_buffer[msg_pos], HEADER_LENGTH))
+                throw std::runtime_error("invalid header checksum");
 
             /* Check we have the whole message */
             if (m_stream_buffer.size() - msg_pos < header.message_size)
@@ -90,6 +105,9 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
                 readout.readouts.push_back(to_double(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 2 * 8]));
             }
             m_data_buffer.push_back(readout);
+
+            if (to_uint32(&m_stream_buffer[msg_pos + DATA_POS + 24 * (int)header.no_readouts]) != compute_checksum(&m_stream_buffer[msg_pos], header.message_size))
+                throw std::runtime_error("invalid packet checksum");
 
             msg_pos += header.message_size;
         }
