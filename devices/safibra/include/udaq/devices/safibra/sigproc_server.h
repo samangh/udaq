@@ -38,9 +38,7 @@ class SigprogServer {
     static uint32_t compute_checksum(const unsigned char* message, size_t message_size);
 
     on_data_available_cb_t m_on_data_available_cb;
-
     std::vector<unsigned char> m_stream_buffer;
-    std::vector<SensorReadout> m_data_buffer;
     std::unique_ptr<safibra_tcp_client> m_client;
 
     mutable std::shared_mutex m_mutex;

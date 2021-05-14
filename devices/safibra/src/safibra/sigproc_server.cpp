@@ -59,71 +59,74 @@ uint32_t udaq::devices::safibra::SigprogServer::compute_checksum(const unsigned 
 
 void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
     const uint8_t *buff, size_t length) {
-    using namespace udaq::common::bytes;
 
+    /* Add read data to buffer for later analysis */
     {
         const std::lock_guard lock(m_mutex);
-
-        /* Copy data to our local bufer */
-        m_stream_buffer.insert(m_stream_buffer.end(), buff, buff + length);
-
-        /* Not enough data*/
-        if (m_stream_buffer.size() < MINIMUM_TOTAL_SIZE)
-            return;
-
-        /* Find sync */
-        auto start = find_sync(m_stream_buffer);
-        if (start < 0)
-            return;
-
-        /* If we get data midway, delete stuff before sync */
-        if (start > 0)
-            m_stream_buffer.erase(m_stream_buffer.begin(),
-                                  m_stream_buffer.begin() + start);
-
-        int msg_pos = 0;
-        while (true) {
-            /* Check that we have the header */
-            if (m_stream_buffer.size() - msg_pos < HEADER_LENGTH)
-                break;
-            Header header(m_stream_buffer, msg_pos);
-            if (header.checksum != compute_checksum(&m_stream_buffer[msg_pos], HEADER_LENGTH))
-                throw std::runtime_error("invalid header checksum");
-
-            /* Check we have the whole message */
-            if (m_stream_buffer.size() - msg_pos < header.message_size)
-                break;
-
-            SensorReadout readout;            
-            readout.sensor_id = header.sensor_id;
-            readout.device_id = header.device_id;
-            readout.sequence_no = header.sequence_no;
-            for (size_t i = 0; i < header.no_readouts; ++i) {
-                auto seconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i]);
-                auto milliseconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 8]);
-                readout.time.push_back(seconds + 1E-6 * milliseconds);
-                readout.readouts.push_back(to_double(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 2 * 8]));
-            }
-            m_data_buffer.push_back(readout);
-
-            if (to_uint32(&m_stream_buffer[msg_pos + DATA_POS + 24 * (int)header.no_readouts]) != compute_checksum(&m_stream_buffer[msg_pos], header.message_size))
-                throw std::runtime_error("invalid packet checksum");
-
-            msg_pos += header.message_size;
-        }
-
-        /* Remove things that we have used */
-        m_stream_buffer.erase(m_stream_buffer.begin(),
-                              m_stream_buffer.begin() + msg_pos);
+        m_stream_buffer.insert(m_stream_buffer.end(), buff, buff+length);
     }
 
-    if (m_on_data_available_cb != nullptr)    
+    if (m_on_data_available_cb != nullptr)
         m_on_data_available_cb();
 }
 
 std::vector<SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {
+    using namespace udaq::common::bytes;
+
     std::lock_guard lock(m_mutex);
-    return std::move(m_data_buffer);
+    std::vector<SensorReadout> result;
+
+    /* Not enough data*/
+    if (m_stream_buffer.size() < MINIMUM_TOTAL_SIZE)
+        return result;
+
+    /* Find sync */
+    auto start = find_sync(m_stream_buffer);
+    if (start < 0)
+        return result;
+
+    /* If we get data midway, delete stuff before sync */
+    if (start > 0)
+        m_stream_buffer.erase(m_stream_buffer.begin(),
+                              m_stream_buffer.begin() + start);
+
+    int msg_pos = 0;
+    while (true) {
+        /* Check that we have the header */
+        if (m_stream_buffer.size() - msg_pos < HEADER_LENGTH)
+            break;
+        Header header(m_stream_buffer, msg_pos);
+        if (header.checksum != compute_checksum(&m_stream_buffer[msg_pos], HEADER_LENGTH))
+            throw std::runtime_error("invalid header checksum");
+
+        /* Check we have the whole message */
+        if (m_stream_buffer.size() - msg_pos < header.message_size)
+            break;
+
+        SensorReadout readout;
+        readout.sensor_id = header.sensor_id;
+        readout.device_id = header.device_id;
+        readout.sequence_no = header.sequence_no;
+        for (size_t i = 0; i < header.no_readouts; ++i) {
+            auto seconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i]);
+            auto milliseconds = to_uint64(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 8]);
+            readout.time.push_back(seconds + 1E-6 * milliseconds);
+            readout.readouts.push_back(to_double(&m_stream_buffer[msg_pos + DATA_POS + 24 * i + 2 * 8]));
+        }
+        result.push_back(readout);
+
+        if (to_uint32(&m_stream_buffer[msg_pos + DATA_POS + 24 * (int)header.no_readouts]) != compute_checksum(&m_stream_buffer[msg_pos], header.message_size))
+            throw std::runtime_error("invalid packet checksum");
+
+        msg_pos += header.message_size;
+    }
+
+    /* Remove things that we have used */
+    m_stream_buffer.erase(m_stream_buffer.begin(),
+                          m_stream_buffer.begin() + msg_pos);
+
+    return result;
+
 }
 
 } // namespace udaq::devices::safibra
