@@ -27,7 +27,6 @@ namespace udaq::devices::safibra {
     }
 
 
-
 safibra_tcp_client::safibra_tcp_client(
     on_error_cb_t on_error_cb, on_client_connected_cb_t on_client_connected_cb,
     on_client_disconnected_cb_t on_client_disconnected_cb,
@@ -132,23 +131,47 @@ safibra_tcp_client::~safibra_tcp_client()
         stop();
 }
 
+
+std::vector<uint8_t> safibra_tcp_client::get_buffer()
+{
+    std::vector<buff> buffers;
+
+    /* swap buffers, do this to minimise locking time*/
+    {
+        std::lock_guard lock(m_mutex);
+        m_buffer.swap(buffers);
+    }
+
+    std::vector<uint8_t> result;
+    for (const auto& buf: buffers)
+        result.insert(result.end(), buf.data.get(), buf.data.get() +buf.length);
+
+    return result;
+}
+
 void safibra_tcp_client::on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
 {
-    /* Take ownership of the buffer, as it is now ours. */
-    auto _buffer = std::unique_ptr<char>(buf->base);
-
     auto a = (safibra_tcp_client*)client->loop->data;
 
     /* Check for disconnection*/
     if(nread < 0) {
+        free(buf->base);
         uv_close((uv_handle_t *)client, on_client_disconnected);
         if (nread != UV_EOF)
             a->on_error(uv_strerror((int)nread));
         return;
     }
 
-    /* Call callback, callback should not free the buffer */
-    a->m_on_data_available((const uint8_t*)buf->base, nread);
+    /* Take ownership of the buffer, as it is now ours. */
+    {
+        std::lock_guard lock(a->m_mutex);
+        buff b;
+        b.data = std::unique_ptr<uint8_t>((uint8_t*)buf->base);
+        b.length = nread;
+        a->m_buffer.emplace_back(std::move(b));
+    }
+
+    a->m_on_data_available(nread);
 }
 
 void safibra_tcp_client::on_new_connection(uv_stream_t *server, int status) {

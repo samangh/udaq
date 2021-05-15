@@ -26,7 +26,7 @@ udaq::devices::safibra::SigprogServer::SigprogServer(
       m_client(std::make_unique<safibra_tcp_client>(
           on_error_cb, on_client_connected_cb, on_client_disconnected_cb,
           on_start, on_stop,
-          std::bind(&SigprogServer::on_data_available_cb_from_tcp, this, _1, _2))) {}
+          std::bind(&SigprogServer::on_data_available_cb_from_tcp, this, _1))) {}
 
 udaq::devices::safibra::SigprogServer::~SigprogServer() {}
 
@@ -57,21 +57,16 @@ uint32_t udaq::devices::safibra::SigprogServer::compute_checksum(const unsigned 
     return sum;
 }
 
-void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(
-    const uint8_t *buff, size_t length) {
-
-    /* Add read data to buffer for later analysis */
-    {
-        const std::lock_guard lock(m_mutex);
-        m_stream_buffer.insert(m_stream_buffer.end(), buff, buff+length);
-    }
-
+void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(size_t length) {
     if (m_on_data_available_cb != nullptr)
         m_on_data_available_cb();
 }
 
 std::vector<SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {
     using namespace udaq::common::bytes;
+
+    auto buff_in= m_client->get_buffer();
+    m_stream_buffer.insert(m_stream_buffer.end(), buff_in.begin(), buff_in.end());
 
     std::lock_guard lock(m_mutex);
     std::vector<SensorReadout> result;
