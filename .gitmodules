@@ -18,3 +18,7 @@
 	path = external/cli11
 	url = https://github.com/CLIUtils/CLI11.git
 	branch = master
+[submodule "external/sanitizers-cmake"]
+	path = external/sanitizers-cmake
+	url = https://github.com/arsenm/sanitizers-cmake.git
+	branch = master

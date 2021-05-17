@@ -36,6 +36,7 @@ option (LABVIEW_SUPPORT "Build with LabVIEW support" OFF)
 ##
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/sanitizers-cmake/cmake")
 
 ##
 ## Compile support
@@ -60,6 +61,7 @@ get_standard_library_name(STANDARD_LIBRARY)
 ## Packages
 ##
 
+find_package(Sanitizers REQUIRED)
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
 find_package(VISA REQUIRED)
@@ -154,6 +156,8 @@ foreach(t ${TARGETS})
     set_property(TARGET ${t} PROPERTY MSVC_RUNTIME_LIBRARY "")
     target_compile_options(${t} PRIVATE "/MT$<$<CONFIG:Debug>:d>")
   endif()
+
+  add_sanitizers(${t})
 endforeach()
 
 foreach(t ${TARGETS})
