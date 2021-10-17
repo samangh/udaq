@@ -110,7 +110,7 @@ public:
     /* Stops the GUI loop. This is not thread safe, it should only be called within the function passed to start_gui_loop().*/
     void stop_gui_loop()
     {
-        gui_done=false;
+        gui_done=true;
     }
 
     void cleanup() {
