@@ -29,7 +29,7 @@ target_include_directories(${TARGET}
 target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
-    uv
+    LibUV::LibUV
     wise_enum
     common
   PRIVATE
