@@ -1,7 +1,7 @@
-#include <bytes.h>
+#include "udaq/common/bytes.h"
+
 #include <type_traits>
 #include <array>
-
 #include <algorithm>
 
 template<typename T> T shift(const uint8_t *buff, unsigned int no_bytes, udaq::common::bytes::Endianess endian)

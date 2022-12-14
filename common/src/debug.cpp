@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "udaq/common/debug.h"
 
 namespace udaq::common {
 
