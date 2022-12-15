@@ -1,18 +1,6 @@
-[submodule "external/imgui"]
-	path = external/imgui
-	url = https://github.com/ocornut/imgui.git
-	branch = master
 [submodule "external/wise_enum"]
 	path = external/wise_enum
 	url = https://github.com/quicknir/wise_enum.git
-	branch = master
-[submodule "external/implot"]
-	path = external/implot
-	url = https://github.com/epezent/implot.git
-	branch = master
-[submodule "external/imgui-filebrowser"]
-	path = external/imgui-filebrowser
-	url = https://github.com/AirGuanZ/imgui-filebrowser.git
 	branch = master
 [submodule "external/cli11"]
 	path = external/cli11
@@ -25,4 +13,8 @@
 [submodule "common"]
 	path = common
 	url = git@github.com:samangh/udaq-common.git
+	branch = master
+[submodule "imgui"]
+	path = imgui
+	url = git@github.com:samangh/udaq-imgui.git
 	branch = master
