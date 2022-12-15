@@ -22,3 +22,7 @@
 	path = external/sanitizers-cmake
 	url = https://github.com/arsenm/sanitizers-cmake.git
 	branch = master
+[submodule "common"]
+	path = common
+	url = git@github.com:samangh/udaq-common.git
+	branch = master
