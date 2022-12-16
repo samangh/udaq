@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
-#include <bytes.h>
 
 namespace udaq::devices::safibra {
 

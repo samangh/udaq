@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
-#include <bytes.h>
+#include <udaq/common/bytes.h>
 #include <udaq/devices/safibra/fbg_reading.h>
 
 #include "tcp_data_offsets.h"

@@ -1,4 +1,4 @@
-#include <bytes.h>
+#include <udaq/common/bytes.h>
 #include <udaq/devices/safibra/sigproc_server.h>
 
 #include "tcp_client.h"
