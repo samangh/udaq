@@ -16,6 +16,8 @@ add_library(${TARGET} ${SRC_FILES})
 ## Includes
 ##
 
+find_package(VISA REQUIRED)
+
 target_include_directories(${TARGET}
   INTERFACE
   PUBLIC

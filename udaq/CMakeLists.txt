@@ -29,7 +29,6 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     wise_enum
-    VISA
   )
 
 ##
