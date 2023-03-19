@@ -133,9 +133,6 @@ get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)
 ## Compile options
 ##
 
-# Set the default build type if none specified by user
-include(BuildType)
-
 foreach(t ${TARGETS})
 
   # Enable extra errors for all projects
