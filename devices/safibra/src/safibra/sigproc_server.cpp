@@ -63,7 +63,7 @@ void udaq::devices::safibra::SigprogServer::on_data_available_cb_from_tcp(size_t
 }
 
 std::vector<SensorReadout> udaq::devices::safibra::SigprogServer::get_data_buffer() {
-    using namespace udaq::common::bytes;
+    using namespace sg::bytes;
 
     auto buff_in= m_client->get_buffer();
     m_stream_buffer.insert(m_stream_buffer.end(), buff_in.begin(), buff_in.end());

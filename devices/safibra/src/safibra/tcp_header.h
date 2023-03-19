@@ -22,10 +22,10 @@ struct Header {
 
      device_id = std::string(device_id_c.data());
      sensor_id = std::string(sensor_id_c.data());
-     sequence_no = udaq::common::bytes::to_uint16(&data[start_pos + PACKET_COUNTER_POSITION]);
-     no_readouts = udaq::common::bytes::to_uint16(&data[start_pos + PACKET_READOUT_COUNTER_POSITION]);
-     message_size = udaq::common::bytes::to_uint32(&data[start_pos + PACKET_BYTES_POSITION]);
-     checksum = udaq::common::bytes::to_uint32(&data[start_pos + HEADER_CHECKSUM_POSITION]);
+     sequence_no = sg::bytes::to_uint16(&data[start_pos + PACKET_COUNTER_POSITION]);
+     no_readouts = sg::bytes::to_uint16(&data[start_pos + PACKET_READOUT_COUNTER_POSITION]);
+     message_size = sg::bytes::to_uint32(&data[start_pos + PACKET_BYTES_POSITION]);
+     checksum = sg::bytes::to_uint32(&data[start_pos + HEADER_CHECKSUM_POSITION]);
     }
 
     std::string device_id;
