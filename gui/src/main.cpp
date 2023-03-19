@@ -5,47 +5,25 @@
 #include <version.h>
 #include <atomic>
 
-#include <imgui-wrapper.h>
-#include <imgui_internal.h>
-#include <imfilebrowser.h>
-#include <implot.h>
+
+#include <sg/imgui/imgui_wrapper_sdl2_opengl3.h>
 #include <fmt/format.h>
 
-#include <udaq/helpers/imgui.h>
-
-#include "gui_context.h"
-
-#ifdef WIN32
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#ifdef __EMSCRIPTEN__
+#include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
+// Main code
 int main(int, char**)
 {
 
-    MyContext imgui_context;
-    imgui_context.initialise("uDAQ");
-
-    // Our state
-    imgui_context.start_gui_loop([&imgui_context](){
-        ImGui::NewFrame();
-        
-        //Menu bar
-        if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("Exit"))
-                    imgui_context.stop_gui_loop();
-                ImGui::EndMenu();
-            }
-
-            ImGui::SameLine(ImGui::GetIO().DisplaySize.x - 60.f);
-            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-
-            ImGui::EndMainMenuBar();
-        }
-
-    });
-
-    imgui_context.cleanup();
+    sg::imgui::IImGuiWrapper::on_start_t start = [](){};
+    sg::imgui::IImGuiWrapper::on_end_t end = [](){};
+    sg::imgui::IImGuiWrapper::on_iteration_t ter = [](bool&){
+        ImGui::ShowDemoWindow();
+    };
+    sg::imgui::ImGuiWrapper_Sdl2_OpenGl3 wrap = sg::imgui::ImGuiWrapper_Sdl2_OpenGl3(start, end, ter);
+    wrap.start("Hello");
 
     return 0;
 }

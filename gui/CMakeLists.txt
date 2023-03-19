@@ -31,12 +31,7 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     imgui
-    implot
     common
-    fmt::fmt
-    imgui-filebrowser
-    imgui-helper
-    wampcc
   )
 
 ##

@@ -64,6 +64,7 @@ get_standard_library_name(STANDARD_LIBRARY)
 find_package(Sanitizers REQUIRED)
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
+find_package(LibUV REQUIRED)
 
 find_package(wampcc REQUIRED)
 if (TARGET wampcc::wampcc_static AND USE_STATIC_LIBS)
