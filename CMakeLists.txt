@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13.4)
 
+# Allows for setting MSVC static runtime
+cmake_policy(SET CMP0091 NEW)
 project(udaq
   VERSION "0.0.1"
   DESCRIPTION "Cross-pltform Data Acquisition Sequencer"
@@ -134,7 +136,6 @@ get_property(TARGETS GLOBAL PROPERTY ${PROJECT_NAME}_TARGETS)
 ##
 
 foreach(t ${TARGETS})
-
   # Enable extra errors for all projects
   target_compile_options(${t}
     PRIVATE
@@ -143,10 +144,8 @@ foreach(t ${TARGETS})
 
   # Link against MSVC statically if enabled
   if (USE_STATIC_RUNTIME AND MSVC)
-    # The MSVC_RUNTIME_LIBRARY option does work properly (even when the
-    # CMP0091 option is set), so let's do this manually
-    set_property(TARGET ${t} PROPERTY MSVC_RUNTIME_LIBRARY "")
-    target_compile_options(${t} PRIVATE "/MT$<$<CONFIG:Debug>:d>")
+    set_property(TARGET ${t} PROPERTY
+      MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   endif()
 
   add_sanitizers(${t})
