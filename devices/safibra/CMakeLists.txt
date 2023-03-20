@@ -31,7 +31,7 @@ target_link_libraries(${TARGET}
   PUBLIC
     LibUV::LibUV
     wise_enum
-    common
+    sg_common
   PRIVATE
     udaq
 )

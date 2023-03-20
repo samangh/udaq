@@ -9,7 +9,7 @@
 #include <system_error>
 #include <uv.h>
 
-#include <udaq/common/bytes.h>
+#include <sg/bytes.h>
 
 #include "tcp_client.h"
 

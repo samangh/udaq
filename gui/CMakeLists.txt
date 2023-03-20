@@ -30,8 +30,8 @@ target_link_libraries(${TARGET}
   INTERFACE
   PUBLIC
   PRIVATE
-    imgui
-    common
+    sg_imgui
+    sg_common
   )
 
 ##

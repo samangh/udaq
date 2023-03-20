@@ -34,7 +34,7 @@ target_link_libraries(${TARGET}
   PUBLIC
   PRIVATE
     safibra
-    common)
+    sg_common)
 
 include (GenerateExportHeader)
 generate_export_header(${TARGET}
